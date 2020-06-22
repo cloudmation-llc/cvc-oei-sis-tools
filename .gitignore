@@ -1,0 +1,15 @@
+# Exclude build directories
+.gradle
+.idea
+build
+
+# Exclude MacOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Exclude config directory that may contain credentials/secrets
+config
+
+# Exclude generated mock data
+src/test/sql-banner/99-mock*

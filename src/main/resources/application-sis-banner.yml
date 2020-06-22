@@ -1,0 +1,9 @@
+#
+# Default SIS configuration applied when the Banner profile is active
+#
+cvc:
+  sis:
+    sql:
+      logins: |
+        select *
+        from goradid

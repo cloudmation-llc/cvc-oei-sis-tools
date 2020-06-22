@@ -1,0 +1,29 @@
+-- Clear all existing records
+truncate table spriden;
+truncate table goradid;
+
+-- Begin generation of mock records
+<% (1..100).each { %>
+<%
+def studentPidm = faker.number().numberBetween(10000, 19999)
+def studentId = faker.number().numberBetween(20000000, 29999999).toString()
+def firstName = faker.name().firstName()
+def lastName = faker.name().lastName()
+def cccId = faker.bothify("#??##?", true)
+def homeInstitution = faker.options().nextElement(homeInstitutions)
+%>
+insert into spriden
+(spriden_pidm, spriden_id, spriden_last_name, spriden_first_name)
+values
+($studentPidm, '$studentId', '$lastName', '$firstName');
+
+insert into goradid
+(goradid_pidm, goradid_adid_code, goradid_additional_id, goradid_user_id, goradid_activity_date, goradid_data_origin)
+values
+($studentPidm, 'CCC', '$cccId', 'CVCOEI', sysdate, 'Gradle');
+
+insert into goradid
+(goradid_pidm, goradid_adid_code, goradid_additional_id, goradid_user_id, goradid_activity_date, goradid_data_origin)
+values
+($studentPidm, 'COEI', '$homeInstitution', 'CVCOEI', sysdate, 'Gradle');
+<% } %>

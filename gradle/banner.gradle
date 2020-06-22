@@ -1,0 +1,66 @@
+import com.github.javafaker.Faker
+import groovy.text.GStringTemplateEngine
+
+/**
+ * Mock data tasks for Banner
+ */
+task setupMockBannerEnvironment {
+    group = "Banner"
+    description = "Run scripts to configure local Oracle instance as a mock Banner environment"
+
+    doFirst {
+        exec {
+            commandLine "sqlplus",
+                "system/gradle@//localhost:1521/pdb_gradle",
+                "@src/test/sql-banner/01-setup-cvc-user.sql"
+        }
+
+        exec {
+            commandLine "sqlplus",
+                "cvcoei/gradle@//localhost:1521/pdb_gradle",
+                "@src/test/sql-banner/02-create-mock-table-goradid.sql"
+        }
+
+        exec {
+            commandLine "sqlplus",
+                "cvcoei/gradle@//localhost:1521/pdb_gradle",
+                "@src/test/sql-banner/03-create-mock-table-spriden.sql"
+        }
+    }
+}
+
+task generateMockBannerData {
+    group = "Banner"
+    description = "Generate a SQL script of mock data for testing Banner SIS programs"
+
+    doFirst {
+        // Setup template engine
+        def templateFile = file("src/test/sql-banner/banner-mock-data.template")
+        def engine = new GStringTemplateEngine()
+        def template = engine.createTemplate(templateFile).make([
+            faker: new Faker(),
+            homeInstitutions: [
+                "deanza",
+                "foothillcollege",
+                "lrccd"
+            ]
+        ])
+
+        // Execute template and write to disk
+        file("src/test/sql-banner/99-mock-banner-data.sql").text = template.toString()
+    }
+}
+
+task loadMockBannerData {
+    group = "Banner"
+    description = "Load the mock data into the local Oracle instance"
+    shouldRunAfter "generateMockBannerData"
+
+    doFirst {
+        exec {
+            commandLine "sqlplus",
+                "cvcoei/gradle@//localhost:1521/pdb_gradle",
+                "@src/test/sql-banner/99-mock-banner-data.sql"
+        }
+    }
+}

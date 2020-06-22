@@ -1,0 +1,35 @@
+/**
+ * Tasks for creating an Oracle database for local testing and mocking
+ */
+task startLocalOracle {
+    group = "Oracle"
+    description = "Start local Oracle instance using Docker"
+
+    /*
+     * Note to Reader:
+     * The following assumes that the instructions from Oracle at
+     * https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance have been followed
+     * to create a local Docker image for an Oracle database.
+     */
+
+    doLast {
+        // Create a local directory to retain the database state
+        mkdir ".gradle/docker-oracle"
+
+        // Start local Oracle container
+        exec {
+            commandLine "docker",
+                "run",
+                "-d",
+                "--rm",
+                "--name", "oracledb",
+                "-e", "ORACLE_SID=gradle",
+                "-e", "ORACLE_PDB=pdb_gradle",
+                "-e", "ORACLE_PWD=gradle",
+                "-p", "1521:1521",
+                "-p", "5500:5500",
+                "-v", "${project.file(".gradle/docker-oracle").absolutePath}:/opt/oracle/oradata",
+                "oracle/database:19.3.0-se2"
+        }
+    }
+}

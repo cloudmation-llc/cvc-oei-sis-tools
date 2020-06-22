@@ -1,0 +1,77 @@
+import org.gradle.api.internal.tasks.userinput.UserInputHandler
+import org.springframework.boot.gradle.tasks.run.*
+
+plugins {
+    id "org.springframework.boot" version "${versionSpringBoot}"
+    id "io.spring.dependency-management" version "${versionSpringDependencyManagement}"
+    id "java"
+    id "io.freefair.lombok" version "${versionLombok}"
+}
+
+group "org.cvcoei"
+version "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    /*
+     * Spring configuration
+     */
+    implementation("org.springframework.boot:spring-boot-starter:${versionSpringBoot}") {
+        exclude module: "spring-boot-starter-logging"
+    }
+    implementation("org.springframework.boot:spring-boot-starter-log4j2:${versionSpringBoot}")
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    /*
+     * RDMS drivers for SIS systems
+     */
+    implementation "com.oracle.ojdbc:ojdbc8:19.3.0.0"
+    implementation "com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8"
+
+    /*
+     * Testing configuration
+     */
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.+"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.+"
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+/**
+ * Spring boot run tasks for local debugging
+ */
+task setSpringProfile {
+    group = "Spring Boot"
+    description = "Set a persistent profile to use when running Spring Boot applications"
+
+    doFirst {
+        // Prompt the user for the current MFA code
+        def userInputService = services.get(UserInputHandler.class) as UserInputHandler
+        def springProfile = userInputService.askQuestion("Please enter the Spring profile to use", null)
+        file("build/spring-profile-active").text = springProfile
+    }
+}
+
+task("generateCsvLogins", type: BootRun) {
+    def activeSpringProfile = file('build/spring-profile-active').text
+
+    group = "Logins CSV Generation"
+    main = "org.cvcoei.sistools.csv.logins.Application"
+    args "--spring.profiles.active=${activeSpringProfile}"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+/**
+ * Apply build files with additional project tasks
+ */
+apply from: "gradle/oracle.gradle"
+apply from: "gradle/banner.gradle"

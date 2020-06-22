@@ -22,6 +22,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter:${versionSpringBoot}") {
         exclude module: "spring-boot-starter-logging"
     }
+    implementation("org.springframework.boot:spring-boot-starter-jdbc:${versionSpringBoot}") {
+        exclude module: "spring-boot-starter-logging"
+    }
     implementation("org.springframework.boot:spring-boot-starter-log4j2:${versionSpringBoot}")
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
@@ -54,7 +57,7 @@ task setSpringProfile {
     description = "Set a persistent profile to use when running Spring Boot applications"
 
     doFirst {
-        // Prompt the user for the current MFA code
+        // Prompt the user for Spring profiles of choice
         def userInputService = services.get(UserInputHandler.class) as UserInputHandler
         def springProfile = userInputService.askQuestion("Please enter the Spring profile to use", null)
         file("build/spring-profile-active").text = springProfile

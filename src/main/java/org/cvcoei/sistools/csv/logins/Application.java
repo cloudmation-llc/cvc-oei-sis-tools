@@ -23,10 +23,10 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
 
 @SuppressWarnings("ALL")
 @SpringBootApplication(
@@ -55,12 +55,14 @@ public class Application {
 
         @Override
         public void run(ApplicationArguments args) throws Exception {
-            // Get a connection to the SIS database
-            try(Connection sisDatabase = sisDatasource.getConnection()) {
-                // Run a few sanity checks
-                System.out.println(sisDatabase.toString());
-                System.out.println(sqlLogins);
-            }
+            // Create a JdbcTemplate for interacting with the SIS database
+            JdbcTemplate jdbc = new JdbcTemplate(sisDatasource);
+
+            // Execute the logins query
+            jdbc
+                .queryForList(sqlLogins)
+                .stream()
+                .forEach(System.out::println);
         }
     }
 

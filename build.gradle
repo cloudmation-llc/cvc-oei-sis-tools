@@ -29,6 +29,11 @@ dependencies {
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
     /*
+     * Additional libraries
+     */
+    implementation "com.opencsv:opencsv:5.2"
+
+    /*
      * RDMS drivers for SIS systems
      */
     implementation "com.oracle.ojdbc:ojdbc8:19.3.0.0"

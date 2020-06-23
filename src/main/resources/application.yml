@@ -1,3 +1,7 @@
+#
+# Application defaults
+#
 cvc:
-  canvas:
-    trustSuffix: .instructure.com
+  logins:
+    canvasTrustSuffix: .instructure.com
+    outputFile: out/logins.csv

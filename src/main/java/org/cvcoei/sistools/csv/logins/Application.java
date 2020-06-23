@@ -16,6 +16,9 @@
 
 package org.cvcoei.sistools.csv.logins;
 
+import com.opencsv.CSVWriter;
+import lombok.extern.log4j.Log4j2;
+import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -27,11 +30,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Optional;
 
 @SuppressWarnings("ALL")
 @SpringBootApplication(
     scanBasePackages = { "org.cvcoei.sistools.common", "org.cvcoei.sistools.csv.logins" },
     proxyBeanMethods = false)
+@Log4j2
 public class Application {
 
     /**
@@ -47,7 +57,32 @@ public class Application {
     @Service
     public static class Runner implements ApplicationRunner {
 
-        @Value("${cvc.sis.sql.logins}")
+        public final static String[] CSV_HEADER = new String[] {
+            "user_id",
+            "login_id",
+            "existing_user_id",
+            "root_account" };
+
+        private final OkHttpClient httpClient = new OkHttpClient.Builder()
+            .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+            .build();
+
+        @Value("${cvc.canvas.accountId}")
+        String canvasAccountId;
+
+        @Value("${cvc.canvas.apiToken}")
+        String canvasApiToken;
+
+        @Value("${cvc.canvas.host}")
+        String canvasHost;
+
+        @Value("${cvc.logins.canvasTrustSuffix}")
+        String canvasTrustSuffix;
+
+        @Value("${cvc.logins.outputFile}")
+        String pathOutputFile;
+
+        @Value("${cvc.logins.sisQuery}")
         String sqlLogins;
 
         @Autowired
@@ -58,11 +93,73 @@ public class Application {
             // Create a JdbcTemplate for interacting with the SIS database
             JdbcTemplate jdbc = new JdbcTemplate(sisDatasource);
 
-            // Execute the logins query
-            jdbc
-                .queryForList(sqlLogins)
-                .stream()
-                .forEach(System.out::println);
+            // Set up output path
+            Path outputPath = Paths.get(pathOutputFile);
+            Optional<Path> outputDirectory = Optional.ofNullable(outputPath.getParent());
+            outputDirectory.ifPresent(this::createDirectory);
+
+            // Open a local CSV file
+            try(CSVWriter writer = new CSVWriter(Files.newBufferedWriter(outputPath))) {
+                // Write header
+                writer.writeNext(CSV_HEADER);
+
+                // Execute SIS query
+                jdbc
+                    .queryForList(sqlLogins)
+                    .forEach(record -> {
+                        // Write record
+                        writer.writeNext(new String[] {
+                            (String) record.get("user_id"),
+                            (String) record.get("login_id"),
+                            (String) record.get("existing_user_id"),
+                            (String) record.get("root_account") + canvasTrustSuffix
+                        });
+                    });
+            }
+
+            // Build HTTP URL for SIS import PAI
+            HttpUrl sisImportUrl = new HttpUrl.Builder()
+                .scheme("https")
+                .host(canvasHost)
+                .addPathSegment("api")
+                .addPathSegment("v1")
+                .addPathSegment("accounts")
+                .addPathSegment(canvasAccountId)
+                .addPathSegment("sis_imports")
+                .addQueryParameter("import_type", "instructure_csv")
+                .addQueryParameter("extension", "csv")
+                .build();
+
+            log.info("Constructed import API URL {}", sisImportUrl);
+
+            // Build HTTP request deliver logins file to Canvas environment
+            Request sisImportRequest = new Request.Builder()
+                .header("Authorization", "Bearer " + canvasApiToken)
+                .method("post", RequestBody.create(
+                    Files.readAllBytes(outputPath),
+                    MediaType.get("application/csv")
+                ))
+                .url(sisImportUrl)
+                .build();
+
+            // Deliver file to Canvas environment
+            try (Response response = httpClient.newCall(sisImportRequest).execute()) {
+                log.info("Canvas API response {}", response);
+            }
+        }
+
+        /**
+         * Helper method to create a directories from a path. If the directories already exist, then this
+         * method does nothing.
+         * @param directory The directory to create
+         */
+        private void createDirectory(Path directory) {
+            try {
+                Files.createDirectories(directory);
+            }
+            catch(IOException ioException) {
+                throw new RuntimeException(ioException);
+            }
         }
     }
 

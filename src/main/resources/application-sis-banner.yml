@@ -2,8 +2,20 @@
 # Default SIS configuration applied when the Banner profile is active
 #
 cvc:
-  sis:
-    sql:
-      logins: |
-        select *
-        from goradid
+  logins:
+    sisQuery: |
+      select
+        spriden_id as "user_id",
+        spriden_id as "login_id",
+        home_college_id.goradid_additional_id as "existing_user_id",
+        home_college.goradid_additional_id as "root_account"
+      from
+        spriden,
+        goradid home_college_id,
+        goradid home_college
+      where
+        home_college_id.goradid_adid_code = 'CHCL'
+        and home_college.goradid_adid_code = 'COEI'
+        and home_college.goradid_pidm = home_college_id.goradid_pidm
+        and spriden_pidm = home_college.goradid_pidm
+        and spriden_change_ind is null

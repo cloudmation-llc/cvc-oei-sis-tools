@@ -132,13 +132,15 @@ public class Application {
 
             log.info("Constructed import API URL {}", sisImportUrl);
 
+            // Package the CSV file into a request body
+            RequestBody sisImportBody = RequestBody.create(
+                MediaType.get("text/csv"),
+                Files.readAllBytes(outputPath));
+
             // Build HTTP request deliver logins file to Canvas environment
             Request sisImportRequest = new Request.Builder()
                 .header("Authorization", "Bearer " + canvasApiToken)
-                .method("post", RequestBody.create(
-                    Files.readAllBytes(outputPath),
-                    MediaType.get("application/csv")
-                ))
+                .post(sisImportBody)
                 .url(sisImportUrl)
                 .build();
 

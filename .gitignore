@@ -13,3 +13,6 @@ config/*
 
 # Exclude generated mock data
 src/test/sql-banner/99-mock*
+
+# Exclude any generated data files
+*.csv

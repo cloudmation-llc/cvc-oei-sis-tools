@@ -1,7 +1,14 @@
 import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.springframework.boot.gradle.tasks.run.*
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
 plugins {
+    id "pl.allegro.tech.build.axion-release" version "1.12.0"
     id "org.springframework.boot" version "${versionSpringBoot}"
     id "io.spring.dependency-management" version "${versionSpringDependencyManagement}"
     id "java"
@@ -9,7 +16,9 @@ plugins {
 }
 
 group "org.cvcoei"
-version "1.0-SNAPSHOT"
+
+// Configure semantic versioning
+version = scmVersion.version
 
 repositories {
     mavenCentral()

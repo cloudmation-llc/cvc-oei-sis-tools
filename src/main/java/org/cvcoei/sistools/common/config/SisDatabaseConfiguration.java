@@ -16,7 +16,6 @@
 
 package org.cvcoei.sistools.common.config;
 
-import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 import oracle.jdbc.pool.OracleDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -50,22 +49,6 @@ public class SisDatabaseConfiguration {
         oracleDataSource.setPassword(datasourceProperties.get("password"));
 
         return oracleDataSource;
-    }
-
-    @Bean("sisDatasource")
-    @ConditionalOnExpression("'${cvc.sis.type}' == 'mssql'")
-    DataSource getMssqlDatasource(@Autowired Map<String, String> datasourceProperties) {
-        // Create SQL Server datasource
-        SQLServerDataSource sqlServerDataSource = new SQLServerDataSource();
-
-        // Configure datasource
-        sqlServerDataSource.setServerName(datasourceProperties.get("serverName"));
-        sqlServerDataSource.setPortNumber(Integer.parseInt(datasourceProperties.get("port")));
-        sqlServerDataSource.setDatabaseName(datasourceProperties.get("database"));
-        sqlServerDataSource.setUser(datasourceProperties.get("user"));
-        sqlServerDataSource.setPassword(datasourceProperties.get("password"));
-
-        return sqlServerDataSource;
     }
 
 }

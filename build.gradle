@@ -102,7 +102,6 @@ dependencies {
      * RDMS drivers for SIS systems
      */
     implementation "com.oracle.ojdbc:ojdbc8:19.3.0.0"
-    implementation "com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8"
 
     /*
      * Testing configuration

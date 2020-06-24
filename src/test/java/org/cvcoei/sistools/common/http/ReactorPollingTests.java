@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
+/**
+ * Unit tests to design a Reactor flow that can poll for a value until a condition is met.
+ */
 @SuppressWarnings("ALL")
 @TestInstance(PER_CLASS)
 public class ReactorPollingTests {

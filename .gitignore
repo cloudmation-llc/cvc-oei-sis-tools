@@ -8,6 +8,9 @@ build
 .AppleDouble
 .LSOverride
 
+# Exclude node_modules
+node_modules
+
 # Exclude config directory that may contain credentials/secrets
 config/*
 

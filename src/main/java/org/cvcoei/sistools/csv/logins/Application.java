@@ -16,9 +16,11 @@
 
 package org.cvcoei.sistools.csv.logins;
 
+import com.google.gson.Gson;
 import com.opencsv.CSVWriter;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.*;
+import org.cvcoei.sistools.common.http.HttpApiPollingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -27,6 +29,7 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -34,13 +37,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 @SuppressWarnings("ALL")
 @SpringBootApplication(
     scanBasePackages = { "org.cvcoei.sistools.common", "org.cvcoei.sistools.csv.logins" },
     proxyBeanMethods = false)
+@EnableAsync
 @Log4j2
 public class Application {
 
@@ -63,10 +68,6 @@ public class Application {
             "existing_user_id",
             "root_account" };
 
-        private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-            .build();
-
         @Value("${cvc.canvas.accountId}")
         String canvasAccountId;
 
@@ -84,6 +85,15 @@ public class Application {
 
         @Value("${cvc.logins.sisQuery}")
         String sqlLogins;
+
+        @Autowired
+        Gson gson;
+
+        @Autowired
+        HttpApiPollingService httpApiPollingService;
+
+        @Autowired
+        OkHttpClient httpClient;
 
         @Autowired
         DataSource sisDatasource;
@@ -117,7 +127,7 @@ public class Application {
                     });
             }
 
-            // Build HTTP URL for SIS import PAI
+            // Build HTTP URL for SIS import API
             HttpUrl sisImportUrl = new HttpUrl.Builder()
                 .scheme("https")
                 .host(canvasHost)
@@ -145,9 +155,45 @@ public class Application {
                 .build();
 
             // Deliver file to Canvas environment
+            Map importCreationResponse;
             try (Response response = httpClient.newCall(sisImportRequest).execute()) {
-                log.info("Canvas API response {}", response);
+                importCreationResponse = gson.fromJson(response.body().string(), Map.class);
+                log.info("Canvas API response {}", importCreationResponse);
             }
+
+            // Fix request ID
+            int importRequestId = ((Double) importCreationResponse.get("id")).intValue();
+
+            // Build request for polling the import status API
+            HttpUrl sisStatusUrl = new HttpUrl.Builder()
+                .scheme("https")
+                .host(canvasHost)
+                .addPathSegment("api")
+                .addPathSegment("v1")
+                .addPathSegment("accounts")
+                .addPathSegment(canvasAccountId)
+                .addPathSegment("sis_imports")
+                .addPathSegment(Integer.toString(importRequestId))
+                .addQueryParameter("import_type", "instructure_csv")
+                .addQueryParameter("extension", "csv")
+                .build();
+
+            Request sisStatusRequest = new Request.Builder()
+                .header("Authorization", "Bearer " + canvasApiToken)
+                .get()
+                .url(sisStatusUrl)
+                .build();
+
+            log.info("Constructed import status API URL {}", sisStatusUrl);
+
+            // Poll the import status API until the job is completed or has an error
+            Map importStatusResponse = httpApiPollingService
+                .pollJsonApi(
+                    sisStatusRequest,
+                    Duration.ofSeconds(5),
+                    "workflow_state != 'initializing' and workflow_state != 'created' and workflow_state != 'importing'");
+
+            log.info("Final import status {}", importStatusResponse);
         }
 
         /**

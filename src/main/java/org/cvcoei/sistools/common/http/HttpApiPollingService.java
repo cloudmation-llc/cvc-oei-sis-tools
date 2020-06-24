@@ -36,7 +36,7 @@ public class HttpApiPollingService {
     public Map pollJsonApi(Request request, Duration pollingInterval, String watchExpression) {
         // Create the repeat rule for polling the API
         final Repeat repeatRule = Repeat
-            .times(10)
+            .times(100)
             .fixedBackoff(pollingInterval);
 
         // Parse the expression used to determine when to exit the poll

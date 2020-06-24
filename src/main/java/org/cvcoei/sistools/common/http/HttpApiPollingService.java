@@ -77,8 +77,9 @@ public class HttpApiPollingService {
                 .equals(Boolean.TRUE);
         })
 
-        // TODO: Consider applying a timeout so that this does not run indefinitely
-        .blockLast();
+        // Wait for a maximum of 30 minutes for the file to be processed so that this program
+        // does not hang indefinitely.
+        .blockLast(Duration.ofMinutes(30));
     }
 
 }

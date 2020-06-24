@@ -60,6 +60,10 @@ scmVersion {
     repository {
         customUsername = getProperty("github.token")
     }
+
+    tag {
+        prefix = ""
+    }
 }
 
 repositories {
@@ -114,6 +118,15 @@ test {
         showStandardStreams = true
     }
 }
+
+/**
+ * Configure how the Spring Boot JAR is built and published on GitHub
+ */
+release.configure {
+    dependsOn "bootJar"
+}
+
+libsDirName = "dist"
 
 /**
  * Spring boot run tasks for local debugging

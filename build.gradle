@@ -22,11 +22,17 @@ version = scmVersion.version
 
 // Configure semantic versioning
 scmVersion {
+    checks {
+        uncommittedChanges = false
+    }
+
     hooks {
         pre { context ->
-            exec {
+            println "Running release pre-hook"
+            project.exec {
                 workingDir project.file("docusaurus")
-                commandLine "npm", "build"
+                commandLine "npm"
+                args "run", "build"
             }
         }
     }

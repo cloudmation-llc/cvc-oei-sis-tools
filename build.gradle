@@ -23,16 +23,36 @@ version = scmVersion.version
 // Configure semantic versioning
 scmVersion {
     checks {
+        aheadOfRemote = false
         uncommittedChanges = false
     }
 
     hooks {
         pre { context ->
-            println "Running release pre-hook"
+            println "Building documentation with Docusaurus"
             project.exec {
                 workingDir project.file("docusaurus")
                 commandLine "npm"
                 args "run", "build"
+            }
+
+            project.delete("docs")
+            project.file("docs").mkdirs()
+            project.file("docs/.nojekyll").createNewFile()
+
+            project.copy {
+                from "docusaurus/build"
+                into "docs"
+            }
+
+            project.exec {
+                commandLine "git"
+                args "add", "docs/*"
+            }
+
+            project.exec {
+                commandLine "git"
+                args "commit", "--amend", "--no-edit"
             }
         }
     }

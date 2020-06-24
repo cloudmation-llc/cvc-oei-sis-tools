@@ -2,7 +2,7 @@ module.exports = {
   title: 'CVC-OEI SIS Tools',
   tagline: 'The tagline of my site',
   url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
+  baseUrl: '/cvc-oei-sis-tools/',
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'docusaurus', // Usually your repo name.

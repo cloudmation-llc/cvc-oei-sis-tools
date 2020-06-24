@@ -21,6 +21,7 @@ import com.opencsv.CSVWriter;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.*;
 import org.cvcoei.sistools.common.http.HttpApiPollingService;
+import org.cvcoei.sistools.common.json.JsonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -39,9 +40,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
-@SuppressWarnings("ALL")
+//@SuppressWarnings("ALL")
 @SpringBootApplication(
     scanBasePackages = { "org.cvcoei.sistools.common", "org.cvcoei.sistools.csv.logins" },
     proxyBeanMethods = false)
@@ -84,13 +86,13 @@ public class Application {
         String sqlLogins;
 
         @Autowired
-        Gson gson;
-
-        @Autowired
         HttpApiPollingService httpApiPollingService;
 
         @Autowired
         OkHttpClient httpClient;
+
+        @Autowired
+        JsonService jsonService;
 
         @Autowired
         DataSource sisDatasource;
@@ -152,9 +154,10 @@ public class Application {
                 .build();
 
             // Deliver file to Canvas environment
-            Map importCreationResponse;
+            Map<String, Object> importCreationResponse;
             try (Response response = httpClient.newCall(sisImportRequest).execute()) {
-                importCreationResponse = gson.fromJson(response.body().string(), Map.class);
+                String jsonResponse = Objects.requireNonNull(response.body()).string();
+                importCreationResponse = jsonService.toMap(jsonResponse);
                 log.info("Canvas API response {}", importCreationResponse);
             }
 
@@ -184,7 +187,7 @@ public class Application {
             log.info("Constructed import status API URL {}", sisStatusUrl);
 
             // Poll the import status API until the job is completed or has an error
-            Map importStatusResponse = httpApiPollingService
+            Map<String, Object> importStatusResponse = httpApiPollingService
                 .pollJsonApi(
                     sisStatusRequest,
                     Duration.ofSeconds(5),

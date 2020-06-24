@@ -22,6 +22,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.cvcoei.sistools.common.expression.ExpressionEvalService;
+import org.cvcoei.sistools.common.json.JsonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ import java.util.Map;
  * Spring service to provide HTTP polling methods such as (but not limited to) monitoring
  * long-running Canvas operations.
  */
-@SuppressWarnings({"ALL"})
+//@SuppressWarnings({"ALL"})
 @Log4j2
 @Service
 public class HttpApiPollingService {
@@ -44,39 +45,32 @@ public class HttpApiPollingService {
     ExpressionEvalService expressionEvalService;
 
     @Autowired
-    Gson gson;
+    JsonService jsonService;
 
     @Autowired
     OkHttpClient httpClient;
 
-    public Map pollJsonApi(Request request, Duration pollingInterval, String watchExpression) {
-        // Create the repeat rule for polling the API
-        final Repeat repeatRule = Repeat
-            .times(100)
-            .fixedBackoff(pollingInterval);
-
+    public Map<String, Object> pollJsonApi(Request request, Duration pollingInterval, String watchExpression) {
         // Parse the expression used to determine when to exit the poll
         final Expression responseExpression = expressionEvalService.parse(watchExpression);
 
         // Create a Mono which can be continually queried until we meet our condition
-        return (Map) Mono.defer(() -> {
+        return Mono.defer(() -> {
             // Execute API request
             try (Response response = httpClient.newCall(request).execute()) {
                 // Parse JSON response
-                Map parsedResponse = gson.fromJson(response.body().string(), Map.class);
-                return Mono.just(parsedResponse);
+                return Mono.just(jsonService.toMap(response.body().string()));
             }
             catch(Exception exception) {
                 return Mono.error(exception);
             }
         })
 
-        // Apply the repeat rule
-        .repeatWhen(repeatRule)
+        .repeatWhen(Repeat
+            .times(100)
+            .fixedBackoff(pollingInterval))
 
-        // Apply a condition to end the polling when the expression evaluates to true
-        .takeUntil(rawResponse -> {
-            Map response = (Map) rawResponse;
+        .takeUntil(response -> {
             log.info("Inspecting workflow state {}", response.get("workflow_state"));
             return expressionEvalService
                 .eval(responseExpression, response)

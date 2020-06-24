@@ -5,17 +5,9 @@ cvc:
   logins:
     sisQuery: |
       select
-        spriden_id as "user_id",
-        spriden_id as "login_id",
-        home_college_id.goradid_additional_id as "existing_user_id",
-        home_college.goradid_additional_id as "root_account"
+        studentid as "user_id",
+        studentid as "login_id",
+        homesisuserid as "existing_user_id",
+        canvasrootaccount as "root_account"
       from
-        spriden,
-        goradid home_college_id,
-        goradid home_college
-      where
-        home_college_id.goradid_adid_code = 'CHCL'
-        and home_college.goradid_adid_code = 'COEI'
-        and home_college.goradid_pidm = home_college_id.goradid_pidm
-        and spriden_pidm = home_college.goradid_pidm
-        and spriden_change_ind is null
+        niccrsxchng.n_stag_canvas

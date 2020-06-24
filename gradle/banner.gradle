@@ -12,19 +12,13 @@ task setupMockBannerEnvironment {
         exec {
             commandLine "sqlplus",
                 "system/gradle@//localhost:1521/pdb_gradle",
-                "@src/test/sql-banner/01-setup-cvc-user.sql"
+                "@src/test/sql-banner/01-setup-n2n-user.sql"
         }
 
         exec {
             commandLine "sqlplus",
                 "cvcoei/gradle@//localhost:1521/pdb_gradle",
-                "@src/test/sql-banner/02-create-mock-table-goradid.sql"
-        }
-
-        exec {
-            commandLine "sqlplus",
-                "cvcoei/gradle@//localhost:1521/pdb_gradle",
-                "@src/test/sql-banner/03-create-mock-table-spriden.sql"
+                "@src/test/sql-banner/02-create-mock-table-nstagcanvas.sql"
         }
     }
 }
@@ -40,9 +34,9 @@ task generateMockBannerData {
         def template = engine.createTemplate(templateFile).make([
             faker: new Faker(),
             homeInstitutions: [
-                "deanza",
-                "foothillcollege",
-                "lrccd"
+                "deanza.instructure.com",
+                "foothillcollege.instructure.com",
+                "lrccd.instructure.com"
             ]
         ])
 

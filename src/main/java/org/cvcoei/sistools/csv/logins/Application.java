@@ -77,9 +77,6 @@ public class Application {
         @Value("${cvc.canvas.host}")
         String canvasHost;
 
-        @Value("${cvc.logins.canvasTrustSuffix}")
-        String canvasTrustSuffix;
-
         @Value("${cvc.logins.outputFile}")
         String pathOutputFile;
 
@@ -122,7 +119,7 @@ public class Application {
                             (String) record.get("user_id"),
                             (String) record.get("login_id"),
                             (String) record.get("existing_user_id"),
-                            (String) record.get("root_account") + canvasTrustSuffix
+                            (String) record.get("root_account")
                         });
                     });
             }

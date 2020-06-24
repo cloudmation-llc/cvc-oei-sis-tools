@@ -3,5 +3,4 @@
 #
 cvc:
   logins:
-    canvasTrustSuffix: .instructure.com
     outputFile: out/logins.csv

@@ -32,8 +32,6 @@ version = hasProperty("forceBuildVersion") ? getProperty("forceBuildVersion") : 
 
 // Configure release plugin
 scmVersion {
-    localOnly = true
-
     checks {
         aheadOfRemote = false
         uncommittedChanges = false

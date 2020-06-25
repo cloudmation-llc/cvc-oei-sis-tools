@@ -1,4 +1,7 @@
 import org.gradle.api.internal.tasks.userinput.UserInputHandler
+import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.springframework.boot.gradle.tasks.run.*
 
 buildscript {
@@ -17,11 +20,16 @@ plugins {
 
 group "org.cvcoei"
 
-// Enable semantic versioning
-version = scmVersion.version
+// Get the user input service
+def userInputService = services.get(UserInputHandler.class) as UserInputHandler
+
+// Enable semantic versioning (if a build version is not directly set)
+version = hasProperty("forceBuildVersion") ? getProperty("forceBuildVersion") : scmVersion.version
 
 // Configure semantic versioning
 scmVersion {
+    localOnly = true
+
     checks {
         aheadOfRemote = false
         uncommittedChanges = false
@@ -29,30 +37,59 @@ scmVersion {
 
     hooks {
         pre { context ->
-            println "Building documentation with Docusaurus"
-            project.exec {
-                workingDir project.file("docusaurus")
-                commandLine "npm"
-                args "run", "build"
+            // Prompt to run documentation build
+            def userPromptBuildDocs = userInputService.askQuestion("Build the documentation (Y/N)?", "N")
+            if(userPromptBuildDocs.equalsIgnoreCase("Y")) {
+                println "Building documentation with Docusaurus"
+                project.exec {
+                    workingDir project.file("docusaurus")
+                    commandLine "npm"
+                    args "run", "build"
+                }
+
+                project.delete("docs")
+                project.file("docs").mkdirs()
+                project.file("docs/.nojekyll").createNewFile()
+
+                project.copy {
+                    from "docusaurus/build"
+                    into "docs"
+                }
+
+                project.exec {
+                    commandLine "git"
+                    args "add", "docs/*"
+                }
+
+                project.exec {
+                    commandLine "git"
+                    args "commit", "--amend", "--no-edit"
+                }
             }
+        }
 
-            project.delete("docs")
-            project.file("docs").mkdirs()
-            project.file("docs/.nojekyll").createNewFile()
+        post { context ->
+            // Prompt to build boot JAR
+            def userPromptBuildJar = userInputService.askQuestion("Build the Spring Boot executable (Y/N)?", "N")
+            if(userPromptBuildJar.equalsIgnoreCase("Y")) {
+                ProjectConnection connection = GradleConnector.newConnector()
+                    .forProjectDirectory(project.projectDir)
+                    .connect()
 
-            project.copy {
-                from "docusaurus/build"
-                into "docs"
-            }
-
-            project.exec {
-                commandLine "git"
-                args "add", "docs/*"
-            }
-
-            project.exec {
-                commandLine "git"
-                args "commit", "--amend", "--no-edit"
+                try {
+                    println "${context.currentVersion}"
+                    logger.lifecycle("Building Spring Boot JAR")
+                    BuildLauncher build = connection.newBuild()
+                    build.forTasks("bootJar")
+                    build.addArguments("-PforceBuildVersion=${context.currentVersion}")
+                    build.run()
+                }
+                catch(Exception exception) {
+                    logger.error("Building the Spring Boot JAR failed", exception)
+                }
+                finally {
+                    connection.close()
+                }
             }
         }
     }
@@ -122,10 +159,6 @@ test {
 /**
  * Configure how the Spring Boot JAR is built and published on GitHub
  */
-release.configure {
-    dependsOn "bootJar"
-}
-
 libsDirName = "dist"
 
 /**
@@ -137,7 +170,6 @@ task setSpringProfile {
 
     doFirst {
         // Prompt the user for Spring profiles of choice
-        def userInputService = services.get(UserInputHandler.class) as UserInputHandler
         def springProfile = userInputService.askQuestion("Please enter the Spring profile to use", null)
         file("build/spring-profile-active").text = springProfile
     }
@@ -156,5 +188,6 @@ task("generateCsvLogins", type: BootRun) {
 /**
  * Apply build files with additional project tasks
  */
+apply from: "gradle/docusaurus.gradle"
 apply from: "gradle/oracle.gradle"
 apply from: "gradle/banner.gradle"

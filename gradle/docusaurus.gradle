@@ -1,0 +1,20 @@
+task('docusaurus', type: Exec) {
+    group = "Documentation"
+    description = "Generate documentation website using Docusaurus"
+    workingDir project.file("docusaurus")
+    commandLine "npm"
+    args "run", "build"
+
+    doFirst {
+        project.delete("docs")
+        project.file("docs").mkdirs()
+        project.file("docs/.nojekyll").createNewFile()
+    }
+
+    doLast {        
+        copy {
+            from "docusaurus/build"
+            into "docs"
+        }        
+    }
+}

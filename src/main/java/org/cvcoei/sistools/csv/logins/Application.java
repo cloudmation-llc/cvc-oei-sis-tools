@@ -16,12 +16,17 @@
 
 package org.cvcoei.sistools.csv.logins;
 
-import com.google.gson.Gson;
 import com.opencsv.CSVWriter;
 import lombok.extern.log4j.Log4j2;
-import okhttp3.*;
-import org.cvcoei.sistools.common.http.HttpApiPollingService;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.cvcoei.sistools.common.http.HttpApiService;
 import org.cvcoei.sistools.common.json.JsonService;
+import org.cvcoei.sistools.common.log4j.CommandLineLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -32,6 +37,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -40,10 +47,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
-//@SuppressWarnings("ALL")
 @SpringBootApplication(
     scanBasePackages = { "org.cvcoei.sistools.common", "org.cvcoei.sistools.csv.logins" },
     proxyBeanMethods = false)
@@ -56,6 +61,15 @@ public class Application {
      * @param args Command line arguments
      */
     public static void main(String[] args) {
+        // Configure Log4j to parse and recognize specific command line arguments
+        final CommandSpec commandSpec = CommandSpec.create();
+        commandSpec.addOption(OptionSpec
+            .builder("--log-level")
+            .arity("1")
+            .build());
+        CommandLineLookup.parse(commandSpec, args);
+
+        // Create Spring application
         SpringApplication application = new SpringApplication(Application.class);
         application.setBannerMode(Banner.Mode.OFF);
         application.run(args);
@@ -69,6 +83,8 @@ public class Application {
             "login_id",
             "existing_user_id",
             "root_account" };
+
+        private final Logger sisErrorsLog = LogManager.getLogger("canvas.sis-import.errors");
 
         @Value("${cvc.canvas.accountId}")
         String canvasAccountId;
@@ -86,10 +102,7 @@ public class Application {
         String sqlLogins;
 
         @Autowired
-        HttpApiPollingService httpApiPollingService;
-
-        @Autowired
-        OkHttpClient httpClient;
+        HttpApiService httpApiService;
 
         @Autowired
         JsonService jsonService;
@@ -139,12 +152,12 @@ public class Application {
                 .addQueryParameter("extension", "csv")
                 .build();
 
-            log.info("Constructed import API URL {}", sisImportUrl);
+            log.debug("Constructed import API URL {}", sisImportUrl);
 
             // Package the CSV file into a request body
             RequestBody sisImportBody = RequestBody.create(
-                MediaType.get("text/csv"),
-                Files.readAllBytes(outputPath));
+                Files.readAllBytes(outputPath),
+                MediaType.get("text/csv"));
 
             // Build HTTP request deliver logins file to Canvas environment
             Request sisImportRequest = new Request.Builder()
@@ -154,15 +167,13 @@ public class Application {
                 .build();
 
             // Deliver file to Canvas environment
-            Map<String, Object> importCreationResponse;
-            try (Response response = httpClient.newCall(sisImportRequest).execute()) {
-                String jsonResponse = Objects.requireNonNull(response.body()).string();
-                importCreationResponse = jsonService.toMap(jsonResponse);
-                log.info("Canvas API response {}", importCreationResponse);
-            }
+            Map<String, Object> importCreationResponse =
+                httpApiService.call(sisImportRequest);
+            log.debug("Import creation response from Canvas {}", importCreationResponse);
 
-            // Fix request ID
+            // Fix request ID (Gson treats all numeric values as floating point)
             int importRequestId = ((Double) importCreationResponse.get("id")).intValue();
+            log.info("Created SIS import {}", importRequestId);
 
             // Build request for polling the import status API
             HttpUrl sisStatusUrl = new HttpUrl.Builder()
@@ -184,16 +195,32 @@ public class Application {
                 .url(sisStatusUrl)
                 .build();
 
-            log.info("Constructed import status API URL {}", sisStatusUrl);
+            log.debug("Constructed import status API URL {}", sisStatusUrl);
 
             // Poll the import status API until the job is completed or has an error
-            Map<String, Object> importStatusResponse = httpApiPollingService
-                .pollJsonApi(
+            Map<String, Object> finalStatusResponse = httpApiService
+                .poll(
                     sisStatusRequest,
-                    Duration.ofSeconds(5),
+                    Duration.ofSeconds(15),
                     "workflow_state != 'initializing' and workflow_state != 'created' and workflow_state != 'importing'");
 
-            log.info("Final import status {}", importStatusResponse);
+            log.debug("Final import status {}", finalStatusResponse);
+            log.info("SIS import completed. Check logs for output");
+
+            // If there is an errors attachment, fetch and log the file contents for inspection
+            if(finalStatusResponse.containsKey("errors_attachment")) {
+                sisErrorsLog.error("Logging errors from Canvas SIS import {}", importRequestId);
+
+                Map<String, Object> errorAttachment = (Map<String, Object>) finalStatusResponse.get("errors_attachment");
+
+                // Fetch the error output from Canvas and pipe into dedicated log file through Log4j
+                Request sisErrorsDownloadRequest = new Request
+                    .Builder()
+                    .url((String) errorAttachment.get("url"))
+                    .build();
+
+                httpApiService.fetchLines(sisErrorsDownloadRequest, sisErrorsLog::error);
+            }
         }
 
         /**

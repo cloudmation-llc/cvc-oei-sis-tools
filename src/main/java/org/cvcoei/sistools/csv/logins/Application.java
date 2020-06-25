@@ -173,7 +173,7 @@ public class Application {
 
             // Fix request ID (Gson treats all numeric values as floating point)
             int importRequestId = ((Double) importCreationResponse.get("id")).intValue();
-            log.info("Created SIS import {}", importRequestId);
+            log.info("Uploaded logins.csv, and created SIS import with ID {}", importRequestId);
 
             // Build request for polling the import status API
             HttpUrl sisStatusUrl = new HttpUrl.Builder()

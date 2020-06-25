@@ -1,3 +1,5 @@
 # CVC OEI SIS Tools
 
-**Work in progress. Documentation to come later.**
+Welcome. Please use the links below for additional resources.
+
+**Documentation:** https://cloudmation-llc.github.io/cvc-oei-sis-tools

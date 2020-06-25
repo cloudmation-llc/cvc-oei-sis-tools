@@ -20,13 +20,17 @@ plugins {
 
 group "org.cvcoei"
 
+// Configure Java targets for a minimum of Java 8
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
 // Get the user input service
 def userInputService = services.get(UserInputHandler.class) as UserInputHandler
 
 // Enable semantic versioning (if a build version is not directly set)
 version = hasProperty("forceBuildVersion") ? getProperty("forceBuildVersion") : scmVersion.version
 
-// Configure semantic versioning
+// Configure release plugin
 scmVersion {
     localOnly = true
 

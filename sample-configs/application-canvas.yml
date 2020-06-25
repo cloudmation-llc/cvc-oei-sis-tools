@@ -1,0 +1,10 @@
+cvc:
+  canvas:
+    # Specify the complete hostname for the Canvas instance
+    host: INSITUTION.instructure.com
+
+    # Specify the account ID
+    accountId: 1
+
+    # Provide an API token for an account authorization to import SIS data
+    apiToken: API_TOKEN_HERE

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info" xmlns="http://logging.apache.org/log4j/2.0/config" packages="org.cvcoei.sistools.common.log4j">
+    <Properties>
+        <Property name="globalLogLevel">$${cmdline:log-level:-info}</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%style{%d{MMM-dd-yyyy hh:mm:ss aa zzz}}{black} %highlight{%level} [%style{%t}{bright,blue}] %style{%C}{bright,yellow}: %msg%n%throwable" />
+        </Console>
+
+        <RollingFile
+                name="Common"
+                fileName="./${sys:logDir:-logs}/cvcoei-common.log"
+                filePattern="./${sys:logDir:-logs}/cvcoei-common-%d{dd-MMMM-yyyy}.log.gz">
+            <PatternLayout>
+                <pattern>%d{MMM-dd-yyyy hh:mm:ss aa zzz} %p %C [%t] %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- Rollover logs daily -->
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+
+            <!-- Retain maximum 30 days of files -->
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <RollingFile
+                name="CsvLogins"
+                fileName="./${sys:logDir:-logs}/cvcoei-csv-logins.log"
+                filePattern="./${sys:logDir:-logs}/cvcoei-csv-logins-%d{dd-MMMM-yyyy}.log.gz">
+            <PatternLayout>
+                <pattern>%d{MMM-dd-yyyy hh:mm:ss aa zzz} %p %C [%t] %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- Rollover logs daily -->
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+
+            <!-- Retain maximum 30 days of files -->
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <RollingFile
+                name="CanvasSisImportErrors"
+                fileName="./${sys:logDir:-logs}/canvas-sis-import-errors.log"
+                filePattern="./${sys:logDir:-logs}/canvas-sis-import-errors-%d{dd-MMMM-yyyy}.log.gz">
+            <PatternLayout>
+                <pattern>%d{MMM-dd-yyyy hh:mm:ss aa zzz} %level %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- Rollover logs daily -->
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+
+            <!-- Retain maximum 30 days of files -->
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="canvas.sis-import.errors" level="error" additivity="false">
+            <AppenderRef ref="CanvasSisImportErrors" />
+        </Logger>
+
+        <Logger name="org.cvcoei.sistools.common" level="${globalLogLevel}" additivity="true">
+            <AppenderRef ref="Common" />
+        </Logger>
+
+        <Logger name="org.cvcoei.sistools.csv.logins" level="${globalLogLevel}" additivity="true">
+            <AppenderRef ref="CsvLogins" />
+        </Logger>
+
+        <Root level="${globalLogLevel}">
+            <AppenderRef ref="Console" />
+        </Root>
+    </Loggers>
+</Configuration>

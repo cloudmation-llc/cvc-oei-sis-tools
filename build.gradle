@@ -92,6 +92,7 @@ dependencies {
     /*
      * Additional libraries
      */
+    implementation "info.picocli:picocli:4.3.2"
     implementation "com.opencsv:opencsv:5.2"
     implementation "com.squareup.okhttp3:okhttp:4.7.2"
     implementation "com.google.code.gson:gson:2.8.6"
@@ -148,6 +149,7 @@ task("generateCsvLogins", type: BootRun) {
     group = "Logins CSV Generation"
     main = "org.cvcoei.sistools.csv.logins.Application"
     args "--spring.profiles.active=${activeSpringProfile}"
+    args "--log-level", "debug"
     classpath = sourceSets.main.runtimeClasspath
 }
 

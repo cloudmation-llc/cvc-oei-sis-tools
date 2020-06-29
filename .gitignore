@@ -19,6 +19,7 @@ config/*
 
 # Exclude log files
 *.log
+*.log.gz
 
 # Exclude generated mock data
 src/test/sql-banner/99-mock*

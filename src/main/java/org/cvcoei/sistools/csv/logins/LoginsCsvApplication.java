@@ -26,19 +26,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cvcoei.sistools.common.http.HttpApiService;
 import org.cvcoei.sistools.common.json.JsonService;
-import org.cvcoei.sistools.common.log4j.CommandLineLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.Banner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -54,26 +49,7 @@ import java.util.Optional;
     proxyBeanMethods = false)
 @EnableAsync
 @Log4j2
-public class Application {
-
-    /**
-     * Entry point.
-     * @param args Command line arguments
-     */
-    public static void main(String[] args) {
-        // Configure Log4j to parse and recognize specific command line arguments
-        final CommandSpec commandSpec = CommandSpec.create();
-        commandSpec.addOption(OptionSpec
-            .builder("--log-level")
-            .arity("1")
-            .build());
-        CommandLineLookup.parse(commandSpec, args);
-
-        // Create Spring application
-        SpringApplication application = new SpringApplication(Application.class);
-        application.setBannerMode(Banner.Mode.OFF);
-        application.run(args);
-    }
+public class LoginsCsvApplication {
 
     @Service
     public static class Runner implements ApplicationRunner {

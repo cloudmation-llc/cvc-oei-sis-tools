@@ -27,9 +27,6 @@ targetCompatibility = "1.8"
 // Get the user input service
 def userInputService = services.get(UserInputHandler.class) as UserInputHandler
 
-// Enable semantic versioning (if a build version is not directly set)
-version = hasProperty("forceBuildVersion") ? getProperty("forceBuildVersion") : scmVersion.version
-
 // Configure release plugin
 scmVersion {
     checks {
@@ -105,6 +102,9 @@ scmVersion {
     }
 }
 
+// Apply semantic versioning (if a build version is not directly set)
+version = hasProperty("forceBuildVersion") ? getProperty("forceBuildVersion") : scmVersion.version
+
 repositories {
     mavenCentral()
 }
@@ -163,6 +163,10 @@ test {
  */
 libsDirName = "dist"
 
+bootJar {
+    mainClassName = "org.cvcoei.sistools.Launcher"
+}
+
 /**
  * Spring boot run tasks for local debugging
  */
@@ -181,7 +185,8 @@ task("generateCsvLogins", type: BootRun) {
     def activeSpringProfile = file('build/spring-profile-active').text
 
     group = "Logins CSV Generation"
-    main = "org.cvcoei.sistools.csv.logins.Application"
+    main = "org.cvcoei.sistools.Launcher"
+    args "--generate-logins-csv"
     args "--spring.profiles.active=${activeSpringProfile}"
     args "--log-level", "debug"
     classpath = sourceSets.main.runtimeClasspath

@@ -31,10 +31,12 @@ public class CommandLineLookup implements StrLookup {
 
     private static ParseResult parseResult;
 
-    public static void parse(CommandLine.Model.CommandSpec spec, String[] args) {
+    public static ParseResult parse(CommandLine.Model.CommandSpec spec, String[] args) {
         parseResult = new CommandLine(spec)
             .setUnmatchedArgumentsAllowed(true)
             .parseArgs(args);
+
+        return parseResult;
     }
 
     @Override

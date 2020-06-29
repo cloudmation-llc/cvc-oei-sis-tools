@@ -17,6 +17,8 @@ Specify the `--generate-logins-csv` command line option.
 * Typically, the logins.csv file can be processed quickly on the Canvas side. You can run this program multiple times a day using job scheduling to continually feed new records into Canvas.
 * It is important to ensure that the logins.csv is generated and imported **before** sending enrollment. This ensures that cross-enrolled students in your SIS will be matched up with their trust accounts in Canvas.
 * Exclude persons intended for processing through logins.csv from your users.csv to avoid any account conflicts. 
+* The generated logins.csv file can be found in the `out` subdirectory for inspection and debugging.
+* Any errors reported on the Canvas side will be recorded in a dedicated log file which can be found in the `logs` subdirectory.
 
 ## Banner
 

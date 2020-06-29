@@ -1,0 +1,25 @@
+spring.profiles.include:
+  - sis-banner
+
+cvc:
+  canvas:
+    # Specify the complete hostname for the Canvas instance
+    host: INSITUTION.instructure.com
+
+    # Specify the account ID
+    accountId: 1
+
+    # Provide an API token for an account authorization to import SIS data
+    apiToken: API_TOKEN_HERE
+
+  sis:
+    type: oracle
+    properties:
+      # Specify the JDBC URL to your database instance
+      url: "jdbc:oracle:thin:@HOST:PORT/SERVICE"
+
+      # Specify the username to connect as
+      user: "USER"
+
+      # Specify the credential to authenticate
+      password: "PASSWORD"

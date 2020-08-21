@@ -1,6 +1,3 @@
-spring.profiles.include:
-  - sis-banner
-
 cvc:
   canvas:
     # Specify the complete hostname for the Canvas instance
@@ -13,13 +10,14 @@ cvc:
     apiToken: API_TOKEN_HERE
 
   sis:
-    type: oracle
-    properties:
-      # Specify the JDBC URL to your database instance
-      url: "jdbc:oracle:thin:@HOST:PORT/SERVICE"
+    # Specify the SIS type (banner, colleague, peoplesoft)
+    type: banner
 
-      # Specify the username to connect as
-      user: "USER"
+    # Specify the JDBC URL to your database instance
+    url: "jdbc:oracle:thin:@HOST:PORT/SERVICE"
 
-      # Specify the credential to authenticate
-      password: "PASSWORD"
+    # Specify the username to connect as
+    user: "USER"
+
+    # Specify the credential to authenticate
+    password: "PASSWORD"

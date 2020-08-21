@@ -2,5 +2,14 @@
 # Global application defaults
 #
 cvc:
-  logins:
+  canvas-logins:
     outputFile: out/logins.csv
+    sql:
+      banner: |
+        select
+          studentid as "user_id",
+          canvasloginid as "login_id",
+          homesisuserid as "existing_user_id",
+          canvasrootaccount as "root_account"
+        from
+          niccrsxchng.n_stag_canvas

@@ -4,27 +4,15 @@ title: Configuration
 sidebar_label: Configuration
 ---
 
-SIS Tools built using the Spring Framework, and uses the concept of [profiles](https://docs.spring.io/spring-boot/docs/2.3.1.RELEASE/reference/html/spring-boot-features.html#boot-features-profiles) to organize the configuration. Profiles help you set up different configurations for multiple SIS environments and Canvas environments.
+SIS Tools uses a feature of the underlying Spring Framework called [profiles](https://docs.spring.io/spring-boot/docs/2.3.1.RELEASE/reference/html/spring-boot-features.html#boot-features-profiles) to organize the configuration. Profiles allow you to specify separate named configurations. For example, many implementors will have a profile for production, and another one for non-production. If supporting multiple colleges in a district, then each institution may have its own set of profiles. 
 
 A configuration profile is created by placing a file in the `config` subfolder that follows the name convention of `application-{profile}.yml`. **{profile}** is a placeholder that should be substituted with the actual name of a profile.
 
 Visit the [`sample-configs` directory](https://github.com/cloudmation-llc/cvc-oei-sis-tools/tree/master/sample-configs) in the project repo for some starter examples.
 
-## Built-In Profiles
-
-SIS Tools comes packaged with built-in profiles to activate various features.
-
-| Profile Name | Applicable Program(s) | Description |
-| ---- | ---- | ---- |
-| `sis-banner` | logins.csv | Enable support for the Banner SIS |
-
 ## Config Reference
 
 ```yaml
-# Specify additional profiles to activate
-spring.profiles.include:
-  - sis-banner
-
 cvc:
   canvas:
     # Specify the complete hostname for the Canvas instance
@@ -37,25 +25,27 @@ cvc:
     apiToken: API_TOKEN_HERE
 
   sis:
-    type: oracle
-    properties:
-      # Specify the JDBC URL to your database instance
-      url: "jdbc:oracle:thin:@HOST:PORT/SERVICE"
+    # Specify the SIS type (banner, colleague, peoplesoft)
+    type: banner
 
-      # Specify the username to connect as
-      user: "USER"
+    # [Banner/PeopleSoft only] Specify the JDBC URL to your database instance
+    url: "jdbc:oracle:thin:@HOST:PORT/SERVICE"
 
-      # Specify the credential to authenticate
-      password: "PASSWORD"
+    # [Banner/PeopleSoft only] Specify the username to connect as
+    user: "USER"
+
+    # [Banner/PeopleSoft only] Specify the credential to authenticate
+    password: "PASSWORD"
 ```
 
 ## Example: Create a Non-Production Profile
 
+This example assumes using the Banner SIS. Configurations may be different for other SIS vendors.
+
 1. Create a file named `application-test.yml` in the `config` directory where you installed the executable JAR.
     * Feel free to copy the starter content from the sample above.
-2. Provide a list of one or more profiles to activate for the `spring.profiles.include` property. Each supported SIS will have a packaged built-in configuration, and it is expected to activate a profile matching your institution.
-3. For the `cvc.canvas` block, configure the Canvas target environment, and an API token authorized to make SIS imports.
-4. For the `cvc.sis` block, configure the JDBC connection information. **Note:** _Not all SIS systems may support this block._
+2. For the `cvc.canvas` block, configure the Canvas target environment, and an API token authorized to make SIS imports.
+3. For the `cvc.sis` block, configure the JDBC connection information.
 
 Follow the same steps to create a production profile.
 
@@ -71,4 +61,4 @@ SIS Tools supports an additional command line option `--log-level <level>` to ch
 
 ## Customization
 
-The configuration system allows for overriding packaged values including the SQL queries used for pulling data from SIS systems. It is possible to customize these values. It would be advised to work with your CVC-OEI implementation team before doing so.
+The configuration system allows for overriding packaged values including the SQL queries used for pulling data from SIS systems. It is possible to customize these values, but before doing so, first consult with your CVC-OEI implementation team.

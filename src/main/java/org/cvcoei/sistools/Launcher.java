@@ -25,6 +25,8 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.ParseResult;
 
+import java.util.List;
+
 public class Launcher {
 
     /**
@@ -41,6 +43,12 @@ public class Launcher {
             .arity("1")
             .build());
 
+        // Define an optional command line argument to simplify activating Spring profiles
+        commandSpec.addOption(OptionSpec
+            .builder("--profiles")
+            .arity("1..*")
+            .build());
+
         // Define a group spec for identifying a job program to
         commandSpec.addArgGroup(ArgGroupSpec
             .builder()
@@ -52,13 +60,19 @@ public class Launcher {
         // Configure Log4j command line lookup plugin to parse and recognize specific command line arguments
         ParseResult parseResult = CommandLineLookup.parse(commandSpec, args);
 
-        // Evaluate which job has been requested and createh Spring application
+        // Evaluate which program has been requested and create the Spring application
         SpringApplication application;
         if(parseResult.hasMatchedOption("generate-logins-csv")) {
             application = new SpringApplication(LoginsCsvApplication.class);
         }
         else {
             throw new RuntimeException("A program type needs to be selected. See documentation for more information.");
+        }
+
+        // Apply requested Spring profiles
+        if(parseResult.hasMatchedOption("--profiles")) {
+            List<String> requestedProfiles = parseResult.matchedOption("--profiles").stringValues();
+            application.setAdditionalProfiles(requestedProfiles.toArray(new String[0]));
         }
 
         // Run Spring application

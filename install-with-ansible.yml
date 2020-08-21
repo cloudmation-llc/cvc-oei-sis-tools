@@ -1,0 +1,74 @@
+- hosts: localhost
+  gather_facts: no
+
+  vars_prompt:
+    - name: install_dir
+      prompt: Provide a path where CVC-OEI tools should be installed
+      private: no
+      default: /opt/cvcoei
+
+    - name: sis_type
+      prompt: Provide the SIS type (banner, colleague, or peoplesoft)
+      private: no
+
+  tasks:
+    - name: Validate SIS type
+      fail:
+        msg: "'{{ sis_type }}' is not a recognized SIS type"
+      when: sis_type not in ['banner', 'colleague', 'peoplesoft']
+
+    - name: Get Java version
+      shell: "{{ lookup('env','JAVA_HOME') }}/bin/java -version"
+      register: result_java_version
+
+    - name: Validate Java version
+      fail:
+        msg: A Java runtime of version 8 or greater is required
+      when: result_java_version.stderr_lines[0] is not search('1[.]8[.].*|(9|[1-9]{2}[.].*)')
+
+    - name: Create install directory
+      file:
+        path: "{{ install_dir }}"
+        state: directory
+
+    - name: Create configuration directory
+      file:
+        path: "{{ install_dir }}/config"
+        state: directory
+
+    - name: Check if CVC-OEI package is already downloaded
+      stat:
+        path: "{{ install_dir }}/cvc-oei-sis-tools.jar"
+      register: stat_cvcoei_jar
+
+    - name: Download CVC-OEI SIS Tools JAR package
+      get_url:
+        url: https://github.com/cloudmation-llc/cvc-oei-sis-tools/releases/latest/download/cvc-oei-sis-tools.jar
+        dest: "{{ install_dir }}/"
+      when: not stat_cvcoei_jar.stat.exists
+
+    - name: Download Banner SIS sample configurations
+      block:
+        - name: Download Banner production sample config
+          get_url:
+            url: https://raw.githubusercontent.com/cloudmation-llc/cvc-oei-sis-tools/master/sample-configs/application-banner-prod.yml
+            dest: "{{ install_dir }}/config/application-banner-prod.yml"
+
+        - name: Download Banner non-production sample config
+          get_url:
+            url: https://raw.githubusercontent.com/cloudmation-llc/cvc-oei-sis-tools/master/sample-configs/application-banner-test.yml
+            dest: "{{ install_dir }}/config/application-banner-test.yml"
+      when: sis_type == "banner"
+
+    - name: Download Colleague SIS sample configurations
+      block:
+        - name: Download Colleague production sample config
+          get_url:
+            url: https://raw.githubusercontent.com/cloudmation-llc/cvc-oei-sis-tools/master/sample-configs/application-colleague-prod.yml
+            dest: "{{ install_dir }}/config/application-colleague-prod.yml"
+
+        - name: Download Colleague non-production sample config
+          get_url:
+            url: https://raw.githubusercontent.com/cloudmation-llc/cvc-oei-sis-tools/master/sample-configs/application-colleague-test.yml
+            dest: "{{ install_dir }}/config/application-colleague-test.yml"
+      when: sis_type == "colleague"

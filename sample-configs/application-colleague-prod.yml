@@ -1,7 +1,7 @@
 cvc:
   canvas:
     # Specify the complete hostname for the Canvas instance
-    host: INSITUTION.test.instructure.com
+    host: INSITUTION.instructure.com
 
     # Specify the account ID
     accountId: 1
@@ -11,13 +11,7 @@ cvc:
 
   sis:
     # Specify the SIS type (banner, colleague, peoplesoft)
-    type: banner
+    type: colleague
 
-    # Specify the JDBC URL to your database instance
-    url: "jdbc:oracle:thin:@HOST:PORT/SERVICE"
-
-    # Specify the username to connect as
-    user: "USER"
-
-    # Specify the credential to authenticate
-    password: "PASSWORD"
+    # Specify the input file with cross-enrollments for Canvas
+    canvasInputFile: /tmp/canvas.csv

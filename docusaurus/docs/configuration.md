@@ -8,6 +8,8 @@ SIS Tools uses a feature of the underlying Spring Framework called [profiles](ht
 
 A configuration profile is created by placing a file in the `config` subfolder that follows the name convention of `application-{profile}.yml`. **{profile}** is a placeholder that should be substituted with the actual name of a profile.
 
+Use the `--profiles` command line argument to activate one or more profiles when running a program.
+
 Visit the [`sample-configs` directory](https://github.com/cloudmation-llc/cvc-oei-sis-tools/tree/master/sample-configs) in the project repo for some starter examples.
 
 ## Config Reference
@@ -49,9 +51,9 @@ This example assumes using the Banner SIS. Configurations may be different for o
 
 Follow the same steps to create a production profile.
 
-## Multiple Institutions
+## Multiple Colleges
 
-To support multiple institutions, simply create additional named profiles such `application-{campusname}-test.yml`.
+To support multiple colleges, simply create additional named profiles such `application-{campusname}-test.yml`.
 
 ## Log Verbosity
 

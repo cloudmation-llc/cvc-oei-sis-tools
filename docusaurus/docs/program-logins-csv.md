@@ -10,7 +10,15 @@ An example of a trust is allowing students in a home college instance of Canvas 
 
 ## How to Run
 
-Specify the `--generate-logins-csv` command line option.
+Specify the `--generate-logins-csv` and `--profiles` command line options. 
+
+### Example
+
+```shell
+java -jar cvc-oei-sis-tools-1.x.x.jar \
+    --generate-logins-csv \
+    --profiles test
+```
 
 ## Tips
 
@@ -20,24 +28,24 @@ Specify the `--generate-logins-csv` command line option.
 * The generated logins.csv file can be found in the `out` subdirectory for inspection and debugging.
 * Any errors reported on the Canvas side will be recorded in a dedicated log file which can be found in the `logs` subdirectory.
 
-## Banner
+## Banner Implementation
 
-The delivered integration expects the _teaching college_ to have an Oracle schema `NICCRSXCHNG` which owns a Canvas staging table named `N_STAG_CANVAS`. Records are added to this table as students are enrolled through the CVC-OEI program.
+The Banner integration expects the _teaching college_ to have an Oracle schema `NICCRSXCHNG` which owns a Canvas staging table named `N_STAG_CANVAS`. Records are added to this table as students are enrolled through the CVC-OEI program.
 
-In the configuration file, include the `sis-banner` profile. Beyond that, no special configuration is needed aside from what is already documented on the [configuration page](configuration).
+Banner is support is activated automatically when the `cvc.sis.type` property in your configuration profile is set to `banner`.
 
-### Example
+Banner specific configuration examples are in the `sample-configs` folder.
 
-```shell
-java -jar cvc-oei-sis-tools-1.x.x.jar \
-    --generate-logins-csv \
-    --spring.profiles.active=PROFILE_GOES_HERE
-```
+## Colleague Implementation
 
-## Colleague
+The Colleague integration expects to find a local CSV flat file with the cross enrollment records. How this file is delivered to your platform is up set up when you first work with your CVC-OEI implementation team. One common method for handling this is through SFTP transfers.
 
-To be developed in the future.
+Colleague is support is activated automatically when the `cvc.sis.type` property in your configuration profile is set to `colleague`.
 
-## PeopleSoft
+In your configuration profile, be sure to set a path to the Canvas input file using the property key `cvc.sis.canvasInputFile`.
+
+Colleague specific configuration examples are in the `sample-configs` folder.
+
+## PeopleSoft Implementation
 
 To be developed in the future.

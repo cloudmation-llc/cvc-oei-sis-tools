@@ -7,14 +7,16 @@ module.exports = {
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'docusaurus', // Usually your repo name.
   themeConfig: {
-    disableDarkMode: true,
+    colorMode: {
+      disableSwitch: true
+    },
     navbar: {
       title: 'CVC-OEI SIS Tools',
       logo: {
         alt: 'CVC-OEI Logo',
         src: 'img/cvc-logo.png',
       },
-      links: [
+      items: [
         {
           href: 'https://github.com/cloudmation-llc/cvc-oei-sis-tools',
           label: 'GitHub',

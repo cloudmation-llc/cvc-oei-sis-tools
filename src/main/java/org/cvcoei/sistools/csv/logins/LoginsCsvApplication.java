@@ -31,22 +31,33 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.JndiDataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.XADataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @SpringBootApplication(
     scanBasePackages = { "org.cvcoei.sistools.common", "org.cvcoei.sistools.csv.logins" },
-    proxyBeanMethods = false)
+    proxyBeanMethods = false,
+    exclude = {
+        DataSourceAutoConfiguration.class,
+        DataSourceTransactionManagerAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        JndiDataSourceAutoConfiguration.class,
+        XADataSourceAutoConfiguration.class
+    })
 @EnableAsync
 @Log4j2
 public class LoginsCsvApplication {
@@ -71,11 +82,8 @@ public class LoginsCsvApplication {
         @Value("${cvc.canvas.host}")
         String canvasHost;
 
-        @Value("${cvc.logins.outputFile}")
+        @Value("${cvc.canvas-logins.outputFile}")
         String pathOutputFile;
-
-        @Value("${cvc.logins.sisQuery}")
-        String sqlLogins;
 
         @Autowired
         HttpApiService httpApiService;
@@ -84,35 +92,36 @@ public class LoginsCsvApplication {
         JsonService jsonService;
 
         @Autowired
-        DataSource sisDatasource;
+        CrossEnrollmentRecordSource crossEnrollmentRecordSource;
 
         @Override
         public void run(ApplicationArguments args) throws Exception {
-            // Create a JdbcTemplate for interacting with the SIS database
-            JdbcTemplate jdbc = new JdbcTemplate(sisDatasource);
+            log.debug("Cross-enrollment record source {}", crossEnrollmentRecordSource);
 
+            // Resolve input records from the configured source
+            List<CrossEnrollmentRecord> inputRecords = crossEnrollmentRecordSource.getRecords();
+
+
+//
             // Set up output path
             Path outputPath = Paths.get(pathOutputFile);
             Optional<Path> outputDirectory = Optional.ofNullable(outputPath.getParent());
             outputDirectory.ifPresent(this::createDirectory);
-
-            // Open a local CSV file
+//
+            // Open a local CSV file and transform input
             try(CSVWriter writer = new CSVWriter(Files.newBufferedWriter(outputPath))) {
                 // Write header
                 writer.writeNext(CSV_HEADER);
 
-                // Execute SIS query
-                jdbc
-                    .queryForList(sqlLogins)
-                    .forEach(record -> {
-                        // Write record
-                        writer.writeNext(new String[] {
-                            (String) record.get("user_id"),
-                            (String) record.get("login_id"),
-                            (String) record.get("existing_user_id"),
-                            (String) record.get("root_account")
-                        });
+                // Iterate and write records
+                for(CrossEnrollmentRecord record : inputRecords) {
+                    writer.writeNext(new String[] {
+                        record.getTeachingCollegeId(),
+                        record.getHomeCollegeLoginId(),
+                        record.getHomeCollegeId(),
+                        record.getCanvasRootAccount()
                     });
+                }
             }
 
             // Build HTTP URL for SIS import API

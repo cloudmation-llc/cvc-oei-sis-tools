@@ -105,6 +105,9 @@ scmVersion {
 // Apply semantic versioning (if a build version is not directly set)
 version = hasProperty("forceBuildVersion") ? getProperty("forceBuildVersion") : scmVersion.version
 
+// Keep version file up to date in resources directory
+project.file("src/main/resources/version.properties").text = "version = ${version}"
+
 repositories {
     mavenCentral()
 }
@@ -165,6 +168,7 @@ test {
 libsDirName = "dist"
 
 bootJar {
+    archiveVersion = ""
     mainClassName = "org.cvcoei.sistools.Launcher"
 }
 

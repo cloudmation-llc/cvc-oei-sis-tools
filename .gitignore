@@ -26,3 +26,6 @@ src/test/sql-banner/99-mock*
 
 # Exclude any generated data files
 *.csv
+
+# Exclude generated version file
+version.properties

@@ -16,6 +16,7 @@
 
 package org.cvcoei.sistools;
 
+import com.google.common.io.Resources;
 import org.cvcoei.sistools.common.log4j.CommandLineLookup;
 import org.cvcoei.sistools.csv.logins.LoginsCsvApplication;
 import org.springframework.boot.Banner;
@@ -25,7 +26,11 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.ParseResult;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Properties;
 
 public class Launcher {
 
@@ -33,7 +38,7 @@ public class Launcher {
      * Entry point.
      * @param args Command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // Define a command line argument spec
         final CommandSpec commandSpec = CommandSpec.create();
 
@@ -49,6 +54,11 @@ public class Launcher {
             .arity("1..*")
             .build());
 
+        // Define an optional command line argument to print the program version
+        commandSpec.addOption(OptionSpec
+            .builder("--version")
+            .build());
+
         // Define a group spec for identifying a job program to
         commandSpec.addArgGroup(ArgGroupSpec
             .builder()
@@ -59,6 +69,23 @@ public class Launcher {
 
         // Configure Log4j command line lookup plugin to parse and recognize specific command line arguments
         ParseResult parseResult = CommandLineLookup.parse(commandSpec, args);
+
+        // Check if the program version is requested
+        if(parseResult.hasMatchedOption("--version")) {
+            // Load version string from embedded properties file
+            InputStream versionInputStream = Launcher
+                .class
+                .getClassLoader()
+                .getResourceAsStream("version.properties");
+
+            Properties versionProperties = new Properties();
+            versionProperties.load(versionInputStream);
+
+            System.out.println("CVC-OEI SIS Tools");
+            System.out.println("Version " + versionProperties.getProperty("version"));
+
+            System.exit(0);
+        }
 
         // Evaluate which program has been requested and create the Spring application
         SpringApplication application;

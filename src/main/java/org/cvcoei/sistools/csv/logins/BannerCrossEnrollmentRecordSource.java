@@ -46,7 +46,7 @@ public class BannerCrossEnrollmentRecordSource extends CrossEnrollmentRecordSour
     @Value("${cvc.sis.password}")
     private String oraclePassword;
 
-    @Value("${cvc.canvas-logins.sql.banner}")
+    @Value("${cvc.cross-enrollment.sql.banner}")
     private String sqlQueryStagingTable;
 
     @Override

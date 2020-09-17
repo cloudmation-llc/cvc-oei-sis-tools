@@ -82,7 +82,7 @@ public class LoginsCsvApplication {
         @Value("${cvc.canvas.host}")
         String canvasHost;
 
-        @Value("${cvc.canvas-logins.outputFile}")
+        @Value("${cvc.cross-enrollment.outputFile}")
         String pathOutputFile;
 
         @Autowired
@@ -101,13 +101,11 @@ public class LoginsCsvApplication {
             // Resolve input records from the configured source
             List<CrossEnrollmentRecord> inputRecords = crossEnrollmentRecordSource.getRecords();
 
-
-//
             // Set up output path
             Path outputPath = Paths.get(pathOutputFile);
             Optional<Path> outputDirectory = Optional.ofNullable(outputPath.getParent());
             outputDirectory.ifPresent(this::createDirectory);
-//
+
             // Open a local CSV file and transform input
             try(CSVWriter writer = new CSVWriter(Files.newBufferedWriter(outputPath))) {
                 // Write header

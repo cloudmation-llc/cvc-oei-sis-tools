@@ -2,7 +2,7 @@
 # Global application defaults
 #
 cvc:
-  canvas-logins:
+  cross-enrollment:
     outputFile: out/logins.csv
     sql:
       banner: |
@@ -13,3 +13,6 @@ cvc:
           canvasrootaccount as "root_account"
         from
           niccrsxchng.n_stag_canvas
+
+      peoplesoft: |
+        TBD

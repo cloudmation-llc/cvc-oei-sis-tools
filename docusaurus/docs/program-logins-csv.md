@@ -15,7 +15,7 @@ Specify the `--generate-logins-csv` and `--profiles` command line options.
 ### Example
 
 ```shell
-java -jar cvc-oei-sis-tools-1.x.x.jar \
+java -jar cvc-oei-sis-tools.jar \
     --generate-logins-csv \
     --profiles test
 ```
@@ -32,17 +32,17 @@ java -jar cvc-oei-sis-tools-1.x.x.jar \
 
 The Banner integration expects the _teaching college_ to have an Oracle schema `NICCRSXCHNG` which owns a Canvas staging table named `N_STAG_CANVAS`. Records are added to this table as students are enrolled through the CVC-OEI program.
 
-Banner is support is activated automatically when the `cvc.sis.type` property in your configuration profile is set to `banner`.
+Banner is support is activated when the `cvc.sis.type` property in your configuration profile is set to `banner`.
 
 Banner specific configuration examples are in the `sample-configs` folder.
 
 ## Colleague Implementation
 
-The Colleague integration expects to find a local CSV flat file with the cross enrollment records. How this file is delivered to your platform is up set up when you first work with your CVC-OEI implementation team. One common method for handling this is through SFTP transfers.
+The Colleague integration expects to be provided a local directory with one or more CSV files that contain the cross enrollment records. How the files are delivered to your system is set up when you first work with your CVC-OEI implementation team. One common method for handling this is through SFTP transfers.
 
-Colleague is support is activated automatically when the `cvc.sis.type` property in your configuration profile is set to `colleague`.
+Colleague is support is activated when the `cvc.sis.type` property in your configuration profile is set to `colleague`.
 
-In your configuration profile, be sure to set a path to the Canvas input file using the property key `cvc.sis.canvasInputFile`.
+In your configuration profile, be sure to set a path to the Canvas input directory using the property key `cvc.cross-enrollment.inputDirectory`. The input directory supports [glob patterns](https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#getPathMatcher-java.lang.String-) so that you can select specific files for input, and ignore others.
 
 Colleague specific configuration examples are in the `sample-configs` folder.
 

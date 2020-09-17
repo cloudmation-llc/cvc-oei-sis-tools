@@ -37,7 +37,13 @@ SIS Tools packages together multiple tools for CVC-OEI integrations. Programs ar
 **Basic Example to Generate logins.csv:**
 
 ```shell
-java -jar cvc-oei-sis-tools-1.x.x.jar \
+java -jar cvc-oei-sis-tools.jar \
     --generate-logins-csv \
-    --spring.profiles.active=PROFILE_GOES_HERE
+    --profiles PROFILE_GOES_HERE
+```
+
+## Check the Program Version
+
+```shell
+java -jar cvc-oei-sis-tools.jar --version
 ```

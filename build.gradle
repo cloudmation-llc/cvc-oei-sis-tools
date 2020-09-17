@@ -186,24 +186,27 @@ task setSpringProfile {
     }
 }
 
-task("generateCsvLoginsBanner", type: BootRun) {
-    def activeSpringProfile = file('build/spring-profile-active').text
+task("checkVersion", type: BootRun) {
+    group = "CVC"
+    main = "org.cvcoei.sistools.Launcher"
+    args "--version"
+    classpath = sourceSets.main.runtimeClasspath
+}
 
+task("generateCsvLoginsBanner", type: BootRun) {
     group = "CVC"
     main = "org.cvcoei.sistools.Launcher"
     args "--generate-logins-csv"
-    args "--profiles", "${activeSpringProfile}"
+    args "--profiles", "cvc-banner"
     args "--log-level", "debug"
     classpath = sourceSets.main.runtimeClasspath
 }
 
 task("generateCsvLoginsColleague", type: BootRun) {
-    def activeSpringProfile = file('build/spring-profile-active').text
-
     group = "CVC"
     main = "org.cvcoei.sistools.Launcher"
     args "--generate-logins-csv"
-    args "--profiles", "${activeSpringProfile}"
+    args "--profiles", "cvc-colleague"
     args "--log-level", "debug"
     classpath = sourceSets.main.runtimeClasspath
 }

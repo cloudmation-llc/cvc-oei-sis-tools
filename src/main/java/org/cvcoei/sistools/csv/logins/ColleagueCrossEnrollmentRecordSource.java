@@ -23,15 +23,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of a record source for the Colleague SIS which expects to find cross-enrollment records
- * in a local CSV file provided by an integration partner.
+ * in a local directory of CSV files provided by an integration partner.
  */
 @Log4j2
 @Service
@@ -40,27 +40,61 @@ import java.util.List;
     havingValue = "colleague")
 public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordSource {
 
-    @Value("${cvc.sis.canvasInputFile}")
-    String propertyInputFile;
+    @Value("${cvc.cross-enrollment.inputDirectory}")
+    String propertyInputDirectory;
 
     @SuppressWarnings("unchecked")
     @Override
     public List<CrossEnrollmentRecord> getRecords() {
-        // Create and validate path of input file
-        Path inputFile = Paths.get(propertyInputFile);
-        if(Files.notExists(inputFile)) {
-            throw new RuntimeException(
-                new FileNotFoundException("Could not find cross-enrollment input file " + inputFile));
-        }
-        log.info("Loading cross-enrollment input file {}", inputFile);
+        // Resolve local filesystem
+        FileSystem filesystem = FileSystems.getDefault();
 
-        // Open CSV input file
-        try(BufferedReader fileReader = Files.newBufferedReader(inputFile)) {
-            // Read entries into local collection
-            return new CsvToBeanBuilder(fileReader)
-                .withType(CrossEnrollmentRecord.class)
-                .build()
-                .parse();
+        // Parse input directory
+        Path inputPattern = Paths.get(propertyInputDirectory);
+        Path inputDirectory = inputPattern.getParent();
+        PathMatcher inputFileMatcher = filesystem.getPathMatcher("glob:" + inputPattern);
+
+        try {
+            // Define a supplier which creates a final collection of all the cross-enrollment records
+            Supplier<List<CrossEnrollmentRecord>> supplier = ArrayList::new;
+
+            // Walk input directory
+            return Files
+                .walk(inputDirectory)
+
+                // Capture only files which match the provided pattern
+                .filter(path -> Files.isRegularFile(path) && inputFileMatcher.matches(path))
+
+                // Convert each CSV into a stream of records, and merge into a single output
+                .flatMap(path -> {
+                    log.info("Processing cross-enrollment input file {}", path);
+
+                    // Open CSV input file
+                    try(BufferedReader fileReader = Files.newBufferedReader(path)) {
+                        // Read entry(ies) from file
+                        List<CrossEnrollmentRecord> parsedRecords =
+                            new CsvToBeanBuilder<CrossEnrollmentRecord>(fileReader)
+                                .withType(CrossEnrollmentRecord.class)
+                                .build()
+                                .parse();
+
+                        log.info("Successfully parsed cross-enrollment file {}", path);
+
+                        return parsedRecords.stream();
+                    }
+                    catch(Exception csvException) {
+                        // Send error up the stack
+                        throw new RuntimeException(csvException);
+                    }
+                })
+
+                // Log each discovered record
+                .peek(crossEnrollmentRecord -> {
+                    log.debug("Processing cross-enrollment record {}", crossEnrollmentRecord);
+                })
+
+                // Send to a final collection
+                .collect(Collectors.toCollection(supplier));
         }
         catch(Exception anyException) {
             // Rethrow as unchecked exception

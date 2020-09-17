@@ -9,9 +9,11 @@ cvc:
     # Provide an API token for an account authorization to import SIS data
     apiToken: API_TOKEN_HERE
 
+  cross-enrollment:
+    # Specify the input directory with cross-enrollment files for Canvas
+    # Glob patterns are supported
+    inputDirectory: colleague-input-dir/canvas*.csv
+
   sis:
     # Specify the SIS type (banner, colleague, peoplesoft)
     type: colleague
-
-    # Specify the input file with cross-enrollments for Canvas
-    canvasInputFile: /tmp/canvas.csv

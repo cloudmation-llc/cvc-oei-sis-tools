@@ -46,7 +46,7 @@ Colleague is support is activated when the `cvc.sis.type` property in your confi
 
 **Completed Files:** By default, successfully parsed files will be moved to a `cross-enrollment-completed` directory created _within_ the input directory. You can change the name of the completed directory using the property key `cvc.cross-enrollment.completedDirectory`.
 
-**Failed Files:** By default, files that fail to parse successfully will be moved to a `cross-enrollment-failed` directory created _within_ the input directory. You can change the name of the completed directory using the property key `cvc.cross-enrollment.failedDirectory`.
+**Failed Files:** By default, files that fail to parse successfully will be moved to a `cross-enrollment-failed` directory created _within_ the input directory. You can change the name of the failed directory using the property key `cvc.cross-enrollment.failedDirectory`.
 
 Colleague specific configuration examples are in the `sample-configs` folder.
 

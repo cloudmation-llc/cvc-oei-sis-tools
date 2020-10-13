@@ -20,6 +20,6 @@ import java.util.List;
 
 public abstract class CrossEnrollmentRecordSource {
 
-    public abstract List<CrossEnrollmentRecord> getRecords();
+    public abstract List<CrossEnrollmentRecord> getRecords() throws Exception;
 
 }

@@ -91,6 +91,7 @@ public class LoginsCsvApplication {
         @Autowired
         JsonService jsonService;
 
+        @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
         @Autowired
         CrossEnrollmentRecordSource crossEnrollmentRecordSource;
 
@@ -100,6 +101,12 @@ public class LoginsCsvApplication {
 
             // Resolve input records from the configured source
             List<CrossEnrollmentRecord> inputRecords = crossEnrollmentRecordSource.getRecords();
+
+            // Validate there is at least one record to process
+            if(inputRecords.size() < 1) {
+                log.info("No cross-enrollment records to process - exiting");
+                System.exit(0);
+            }
 
             // Set up output path
             Path outputPath = Paths.get(pathOutputFile);

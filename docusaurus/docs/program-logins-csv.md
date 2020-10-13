@@ -42,7 +42,11 @@ The Colleague integration expects to be provided a local directory with one or m
 
 Colleague is support is activated when the `cvc.sis.type` property in your configuration profile is set to `colleague`.
 
-In your configuration profile, be sure to set a path to the Canvas input directory using the property key `cvc.cross-enrollment.inputDirectory`. The input directory supports [glob patterns](https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#getPathMatcher-java.lang.String-) so that you can select specific files for input, and ignore others.
+**Input Files:** In your configuration profile, be sure to set a path to the Canvas input directory using the property key `cvc.cross-enrollment.inputDirectory`. The input directory supports [glob patterns](https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#getPathMatcher-java.lang.String-) so that you can select specific files for input, and ignore others. The program _does not descend into subdirectories_.
+
+**Completed Files:** By default, successfully parsed files will be moved to a `cross-enrollment-completed` directory created _within_ the input directory. You can change the name of the completed directory using the property key `cvc.cross-enrollment.completedDirectory`.
+
+**Failed Files:** By default, files that fail to parse successfully will be moved to a `cross-enrollment-failed` directory created _within_ the input directory. You can change the name of the completed directory using the property key `cvc.cross-enrollment.failedDirectory`.
 
 Colleague specific configuration examples are in the `sample-configs` folder.
 

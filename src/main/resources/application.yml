@@ -3,7 +3,9 @@
 #
 cvc:
   cross-enrollment:
-    outputFile: out/logins.csv
+    completedDirectory: cross-enrollment-completed
+    failedDirectory: cross-enrollment-failed
+    outputFile: cross-enrollment-out/logins.csv
     sql:
       banner: |
         select

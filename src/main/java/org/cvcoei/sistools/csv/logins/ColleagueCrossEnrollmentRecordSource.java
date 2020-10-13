@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -40,27 +41,56 @@ import java.util.stream.Collectors;
     havingValue = "colleague")
 public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordSource {
 
+    private static final List<CrossEnrollmentRecord> EMPTY = new ArrayList<>();
+
+    @Value("${cvc.cross-enrollment.completedDirectory}")
+    String propertyCompletedDirectory;
+
+    @Value("${cvc.cross-enrollment.failedDirectory}")
+    String propertyFailedDirectory;
+
     @Value("${cvc.cross-enrollment.inputDirectory}")
     String propertyInputDirectory;
 
-    @SuppressWarnings("unchecked")
+    private static Path move(Path source, Path destination) {
+        try {
+            return Files.move(source, destination);
+        }
+        catch(Exception exception) {
+            // Rethrow as unchecked exception
+            throw new RuntimeException(exception);
+        }
+    }
+
     @Override
-    public List<CrossEnrollmentRecord> getRecords() {
+    public List<CrossEnrollmentRecord> getRecords() throws Exception {
         // Resolve local filesystem
         FileSystem filesystem = FileSystems.getDefault();
 
         // Parse input directory
         Path inputPattern = Paths.get(propertyInputDirectory);
         Path inputDirectory = inputPattern.getParent();
+        log.debug("Using {} for the input file directory", inputDirectory);
         PathMatcher inputFileMatcher = filesystem.getPathMatcher("glob:" + inputPattern);
+
+        // Setup completed directory
+        Path completedDirectory = inputDirectory.resolve(propertyCompletedDirectory);
+        log.debug("Using {} for the completed file directory", completedDirectory);
+        Files.createDirectories(completedDirectory);
+
+        // Setup failed directory
+        Path failedDirectory = inputDirectory.resolve(propertyFailedDirectory);
+        log.debug("Using {} for the failed file directory", failedDirectory);
+        Files.createDirectories(failedDirectory);
 
         try {
             // Define a supplier which creates a final collection of all the cross-enrollment records
             Supplier<List<CrossEnrollmentRecord>> supplier = ArrayList::new;
+            AtomicInteger count = new AtomicInteger();
 
             // Walk input directory
             return Files
-                .walk(inputDirectory)
+                .walk(inputDirectory, 1)
 
                 // Capture only files which match the provided pattern
                 .filter(path -> Files.isRegularFile(path) && inputFileMatcher.matches(path))
@@ -78,13 +108,18 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
                                 .build()
                                 .parse();
 
-                        log.info("Successfully parsed cross-enrollment file {}", path);
+                        // Move successfully parsed file into completed directory
+                        move(path, completedDirectory.resolve(path.getFileName()));
 
+                        log.info("Successfully parsed cross-enrollment file {}", path);
                         return parsedRecords.stream();
                     }
                     catch(Exception csvException) {
-                        // Send error up the stack
-                        throw new RuntimeException(csvException);
+                        // Move the file with the error back into the input directory
+                        move(path, failedDirectory.resolve(path.getFileName()));
+
+                        log.error("Failed to parse {} - input filed has been moved to the failed directory", path);
+                        return EMPTY.stream();
                     }
                 })
 

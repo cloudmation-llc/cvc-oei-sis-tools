@@ -92,6 +92,7 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
             return Files
                 .walk(inputDirectory, 1)
 
+                // Log the file getting scanned before any processing for debugging
                 .peek(path -> log.debug("Scanning input file {}", path))
 
                 // Capture only files which match the provided pattern

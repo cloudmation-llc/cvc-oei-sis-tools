@@ -5,6 +5,7 @@ cvc:
   cross-enrollment:
     completedDirectory: cross-enrollment-completed
     failedDirectory: cross-enrollment-failed
+    inputPattern: "**/canvas*"
     outputFile: cross-enrollment-out/logins.csv
     sql:
       banner: |

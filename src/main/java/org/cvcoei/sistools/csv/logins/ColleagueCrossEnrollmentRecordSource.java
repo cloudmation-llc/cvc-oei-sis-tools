@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -52,6 +51,9 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
     @Value("${cvc.cross-enrollment.inputDirectory}")
     String propertyInputDirectory;
 
+    @Value("${cvc.cross-enrollment.inputPattern}")
+    String propertyInputPattern;
+
     private static Path move(Path source, Path destination) {
         try {
             return Files.move(source, destination);
@@ -68,10 +70,9 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
         FileSystem filesystem = FileSystems.getDefault();
 
         // Parse input directory
-        Path inputPattern = Paths.get(propertyInputDirectory);
-        Path inputDirectory = inputPattern.getParent();
+        Path inputDirectory = Paths.get(propertyInputDirectory);
         log.debug("Using {} for the input file directory", inputDirectory);
-        PathMatcher inputFileMatcher = filesystem.getPathMatcher("glob:" + inputPattern);
+        PathMatcher inputFileMatcher = filesystem.getPathMatcher("glob:" + propertyInputPattern);
 
         // Setup completed directory
         Path completedDirectory = inputDirectory.resolve(propertyCompletedDirectory);
@@ -86,11 +87,12 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
         try {
             // Define a supplier which creates a final collection of all the cross-enrollment records
             Supplier<List<CrossEnrollmentRecord>> supplier = ArrayList::new;
-            AtomicInteger count = new AtomicInteger();
 
             // Walk input directory
             return Files
                 .walk(inputDirectory, 1)
+
+                .peek(path -> log.debug("Scanning input file {}", path))
 
                 // Capture only files which match the provided pattern
                 .filter(path -> Files.isRegularFile(path) && inputFileMatcher.matches(path))

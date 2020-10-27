@@ -51,6 +51,16 @@ This example assumes using the Banner SIS. Configurations may be different for o
 
 Follow the same steps to create a production profile.
 
+## File Paths
+
+It is highly recommended to wrap file paths with single quotes.
+
+```yaml
+some:
+  file:
+    property: '**/canvas*'
+```
+
 ## Multiple Colleges
 
 To support multiple colleges, simply create additional named profiles such `application-{campusname}-test.yml`.

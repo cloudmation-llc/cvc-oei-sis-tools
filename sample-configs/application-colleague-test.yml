@@ -12,7 +12,7 @@ cvc:
   cross-enrollment:
     # Specify the input directory with cross-enrollment files for Canvas
     # Glob patterns are supported
-    inputDirectory: colleague-input-dir/canvas*.csv
+    inputDirectory: 'colleague-input-dir/canvas*.csv'
 
   sis:
     # Specify the SIS type (banner, colleague, peoplesoft)

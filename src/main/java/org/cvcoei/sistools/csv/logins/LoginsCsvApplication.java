@@ -196,12 +196,17 @@ public class LoginsCsvApplication {
             log.debug("Final import status {}", finalStatusResponse);
 
             // Write the final output status from Canvas to a local file for inspection
-            Path importStatusOutputFile = outputDirectory.resolve("canvas_sis_import_status_" + importRequestId + ".log");
+            Path importStatusOutputFile = outputPath.resolveSibling("canvas_sis_import_status_" + importRequestId + ".log");
 
             Files.write(
                 importStatusOutputFile,
                 Collections.singletonList(jsonService.toJsonPretty(finalStatusResponse)),
                 Charset.defaultCharset());
+
+            // Rename the logins.csv output file with its import ID for archiving
+            Files.move(
+                outputPath,
+                outputPath.resolveSibling("logins_" + importRequestId + ".csv"));
 
             log.info("SIS import completed. Check logs for output");
 

@@ -17,6 +17,7 @@
 package org.cvcoei.sistools.common.json;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,11 @@ import java.util.Map;
 @Service
 public class JsonService {
 
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder().create();
+
+    private final Gson gsonPretty = new GsonBuilder()
+        .setPrettyPrinting()
+        .create();
 
     /**
      * Type adapter with working with simple string/object maps
@@ -44,12 +49,12 @@ public class JsonService {
     }
 
     /**
-     * Serialize a Map into a JSON string.
+     * Serialize a Map into a pretty formatted JSON string.
      * @param map the map to serialize
-     * @return JSON formatted string
+     * @return JSON pretty formatted string
      */
-    public String toJson(Map<Object, Object> map) {
-        return gson.toJson(map);
+    public String toJsonPretty(Map<String, Object> map) {
+        return gsonPretty.toJson(map);
     }
 
 }

@@ -37,10 +37,6 @@ public class ExpressionEvalService {
         return expressionParser.parseExpression(expression);
     }
 
-    public Object eval(Expression expression) {
-        return expression.getValue();
-    }
-
     public Object eval(Expression expression, Map properties) {
         StandardEvaluationContext context = new StandardEvaluationContext(properties);
         context.addPropertyAccessor(new MapAccessor());

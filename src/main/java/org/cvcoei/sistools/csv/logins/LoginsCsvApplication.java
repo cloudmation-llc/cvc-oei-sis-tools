@@ -40,13 +40,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @SpringBootApplication(
     scanBasePackages = { "org.cvcoei.sistools.common", "org.cvcoei.sistools.csv.logins" },
@@ -195,6 +194,14 @@ public class LoginsCsvApplication {
                     "workflow_state != 'initializing' and workflow_state != 'created' and workflow_state != 'importing'");
 
             log.debug("Final import status {}", finalStatusResponse);
+
+            // Write the final output status from Canvas to a local file for inspection
+            Path importStatusOutputFile = outputPath.getParent().resolve("canvas_sis_import_status_" + importRequestId + ".log");
+            Files.write(
+                importStatusOutputFile,
+                Collections.singletonList(jsonService.toJsonPretty(finalStatusResponse)),
+                Charset.defaultCharset());
+
             log.info("SIS import completed. Check logs for output");
 
             // If there is an errors attachment, fetch and log the file contents for inspection

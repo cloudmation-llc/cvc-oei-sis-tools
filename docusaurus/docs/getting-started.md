@@ -10,6 +10,12 @@ sidebar_label: Getting Started
     * Verify by running `java -version`
 * Network access to SIS data
 
+### Getting the Java Runtime
+
+If you need to download and install a Java runtime, AdoptOpenJDK.net is a recommended source to get Java for a wide variety of platforms: https://adoptopenjdk.net.
+
+SIS Tools is currently tested with Java LTS releases 8 and 11.
+
 ## Download
 
 SIS Tools is a Java application packaged as a single executable JAR file. Available releases can be downloaded from the [GitHub releases](https://github.com/cloudmation-llc/cvc-oei-sis-tools/releases) page. The project follows [semantic versioning](https://semver.org), and each new release will have incremented version number.

@@ -109,8 +109,8 @@ public class LoginsCsvApplication {
 
             // Set up output path
             Path outputPath = Paths.get(pathOutputFile);
-            Optional<Path> outputDirectory = Optional.ofNullable(outputPath.getParent());
-            outputDirectory.ifPresent(this::createDirectory);
+            Path outputDirectory = outputPath.getParent();
+            createDirectory(outputDirectory);
 
             // Open a local CSV file and transform input
             try(CSVWriter writer = new CSVWriter(Files.newBufferedWriter(outputPath))) {
@@ -196,7 +196,8 @@ public class LoginsCsvApplication {
             log.debug("Final import status {}", finalStatusResponse);
 
             // Write the final output status from Canvas to a local file for inspection
-            Path importStatusOutputFile = outputPath.getParent().resolve("canvas_sis_import_status_" + importRequestId + ".log");
+            Path importStatusOutputFile = outputDirectory.resolve("canvas_sis_import_status_" + importRequestId + ".log");
+
             Files.write(
                 importStatusOutputFile,
                 Collections.singletonList(jsonService.toJsonPretty(finalStatusResponse)),

@@ -53,6 +53,27 @@ public class HttpApiService {
     @Autowired
     OkHttpClient httpClient;
 
+    private void checkForCanvasException(Request request, Response response) {
+        // Check for a non-success code
+        try {
+            if(response.code() != 200) {
+                // Throw an unchecked exception
+                log.error(
+                    "HTTP request to {} failed status={} reason={}\n{}",
+                    request.url(),
+                    response.code(),
+                    response.message(),
+                    response.body().string());
+
+                throw new RuntimeException("HTTP request failed (see logs for detail)");
+            }
+        }
+        catch(IOException exception) {
+            log.error("Failed to unpack HTTP response body", exception);
+            throw new RuntimeException(exception);
+        }
+    }
+
     /**
      * Execute an HTTP request.
      * @param request An OkHttp request specifying the request to make
@@ -60,6 +81,7 @@ public class HttpApiService {
      */
     public Map<String, Object> call(Request request){
         try (Response response = httpClient.newCall(request).execute()) {
+            checkForCanvasException(request, response);
             String jsonResponse = Objects.requireNonNull(response.body()).string();
             return jsonService.toMap(jsonResponse);
         }
@@ -76,6 +98,7 @@ public class HttpApiService {
      */
     public void fetchLines(Request request, Consumer<String> lineHandler) {
         try (Response response = httpClient.newCall(request).execute()) {
+            checkForCanvasException(request, response);
             Reader responseReader = Objects.requireNonNull(response.body()).charStream();
             try (BufferedReader buffer = new BufferedReader(responseReader)) {
                 String line;

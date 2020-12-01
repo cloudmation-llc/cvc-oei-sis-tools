@@ -55,16 +55,6 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
     @Value("${cvc.cross-enrollment.inputPattern}")
     String propertyInputPattern;
 
-    private static Path move(Path source, Path destination) {
-        try {
-            return Files.move(source, destination);
-        }
-        catch(Exception exception) {
-            // Rethrow as unchecked exception
-            throw new RuntimeException(exception);
-        }
-    }
-
     @Override
     public List<CrossEnrollmentRecord> getRecords() throws Exception {
         // Resolve local filesystem
@@ -113,14 +103,14 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
                                 .parse();
 
                         // Move successfully parsed file into completed directory
-                        move(path, completedDirectory.resolve(path.getFileName()));
+                        FileUtilities.move(path, completedDirectory.resolve(path.getFileName()));
 
                         log.info("Successfully parsed cross-enrollment file {}", path);
                         return parsedRecords.stream();
                     }
                     catch(Exception exception) {
                         // Move the file with the error back into the input directory
-                        move(path, failedDirectory.resolve(path.getFileName()));
+                        FileUtilities.move(path, failedDirectory.resolve(path.getFileName()));
 
                         log.error("Failed to parse {} - input filed has been moved to the failed directory", path, exception);
                         return EMPTY.stream();

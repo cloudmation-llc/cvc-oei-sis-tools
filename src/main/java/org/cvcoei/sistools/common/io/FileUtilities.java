@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Collection of utilities for working with local files.
@@ -58,7 +59,7 @@ public class FileUtilities {
      */
     public static Path move(Path source, Path destination) {
         try {
-            return Files.move(source, destination);
+            return Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING);
         }
         catch(Exception exception) {
             // Rethrow as unchecked exception

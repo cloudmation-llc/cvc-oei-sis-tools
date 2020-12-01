@@ -16,7 +16,6 @@
 
 package org.cvcoei.sistools;
 
-import com.google.common.io.Resources;
 import org.cvcoei.sistools.common.log4j.CommandLineLookup;
 import org.cvcoei.sistools.csv.logins.LoginsCsvApplication;
 import org.springframework.boot.Banner;
@@ -27,8 +26,6 @@ import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.ParseResult;
 
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Properties;
 

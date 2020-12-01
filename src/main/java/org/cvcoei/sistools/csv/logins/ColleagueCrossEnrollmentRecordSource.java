@@ -18,11 +18,12 @@ package org.cvcoei.sistools.csv.logins;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.extern.log4j.Log4j2;
+import org.cvcoei.sistools.common.io.FileUtilities;
+import org.cvcoei.sistools.common.io.ReaderWithCharset;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,13 +101,13 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
 
                 // Convert each CSV into a stream of records, and merge into a single output
                 .flatMap(path -> {
-                    log.info("Processing cross-enrollment input file {}", path);
-
                     // Open CSV input file
-                    try(BufferedReader fileReader = Files.newBufferedReader(path)) {
+                    try(ReaderWithCharset readerWithCharset = FileUtilities.getReaderWithCharsetDetection(path)) {
+                        log.info("Processing cross-enrollment input file {} (charset = {})", path, readerWithCharset.getCharset());
+
                         // Read entry(ies) from file
                         List<CrossEnrollmentRecord> parsedRecords =
-                            new CsvToBeanBuilder<CrossEnrollmentRecord>(fileReader)
+                            new CsvToBeanBuilder<CrossEnrollmentRecord>(readerWithCharset.getReader())
                                 .withType(CrossEnrollmentRecord.class)
                                 .build()
                                 .parse();
@@ -117,11 +118,11 @@ public class ColleagueCrossEnrollmentRecordSource extends CrossEnrollmentRecordS
                         log.info("Successfully parsed cross-enrollment file {}", path);
                         return parsedRecords.stream();
                     }
-                    catch(Exception csvException) {
+                    catch(Exception exception) {
                         // Move the file with the error back into the input directory
                         move(path, failedDirectory.resolve(path.getFileName()));
 
-                        log.error("Failed to parse {} - input filed has been moved to the failed directory", path);
+                        log.error("Failed to parse {} - input filed has been moved to the failed directory", path, exception);
                         return EMPTY.stream();
                     }
                 })

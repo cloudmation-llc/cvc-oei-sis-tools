@@ -141,6 +141,7 @@ dependencies {
     implementation "com.google.code.gson:gson:2.8.6"
     implementation "io.projectreactor:reactor-core"
     implementation "io.projectreactor.addons:reactor-extra"
+    implementation "com.ibm.icu:icu4j:68.1"
 
     /*
      * RDMS drivers for SIS systems

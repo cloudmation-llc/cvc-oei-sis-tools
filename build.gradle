@@ -62,7 +62,7 @@ scmVersion {
 
                 project.exec {
                     commandLine "git"
-                    args "commit", "--amend", "--no-edit"
+                    args "commit", "-m", "Generated new documentation"
                 }
             }
         }
